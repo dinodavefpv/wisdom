@@ -1,0 +1,716 @@
+/* Modern Dark Theme Styles for Medicine Tracker */
+
+:root {
+    --bg-primary: #f9a8d4;
+    --bg-secondary: #fbcfe8;
+    --bg-tertiary: #f472b6;
+
+    --text-primary: #831843;
+    --text-secondary: #9d174d;
+
+    --accent-blue: #3b82f6;
+    --accent-orange: #f97316;
+    --accent-red: #ef4444;
+    --accent-green: #22c55e;
+    --accent-purple: #a855f7;
+    --accent-teal: #14b8a6;
+    --accent-pink: #ec4899;
+
+    --border: #f472b6;
+
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    /* Kept narrow for mobile optimization */
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+}
+
+/* Past Time Section */
+.past-time-section {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.time-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.8rem 1.5rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: var(--transition);
+}
+
+.time-toggle-btn:hover {
+    background: rgba(255, 105, 180, 0.05);
+    color: var(--text-primary);
+}
+
+.time-toggle-btn.active {
+    background: rgba(255, 105, 180, 0.15);
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+}
+
+.time-toggle-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+#past-time-container {
+    width: 100%;
+    max-width: 380px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+#past-time-container.hidden {
+    display: none;
+}
+
+/* Day Selector */
+.day-selector-container {
+    margin-bottom: 20px;
+}
+
+.day-selector {
+    display: flex;
+    overflow-x: auto;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    padding: 6px;
+    gap: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border: 1px solid var(--border);
+}
+
+.day-selector::-webkit-scrollbar {
+    display: none;
+}
+
+.day-selector .day {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.9em;
+    min-width: 50px;
+    color: var(--text-secondary);
+}
+
+.day-selector .day:hover {
+    background: rgba(255, 105, 180, 0.1);
+}
+
+.day-selector .day.selected {
+    background: var(--accent-pink);
+    color: white;
+}
+
+.day-selector .day .day-name {
+    font-size: 0.75em;
+    margin-bottom: 2px;
+    font-weight: 600;
+}
+
+.day-selector .day .day-num {
+    font-size: 1.1em;
+    font-weight: 700;
+}
+
+/* Time Selector */
+.time-selector-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 160px;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+.time-selector-container::before,
+.time-selector-container::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 45px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.time-selector-container::before {
+    top: 0;
+    background: linear-gradient(to bottom, var(--bg-tertiary), transparent);
+}
+
+.time-selector-container::after {
+    bottom: 0;
+    background: linear-gradient(to top, var(--bg-tertiary), transparent);
+}
+
+/* Center Highlight Bar */
+.time-picker-highlight {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 45px;
+    transform: translateY(-50%);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 105, 180, 0.05);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.time-picker-column {
+    flex: 1;
+    max-width: 70px;
+    height: 100%;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    position: relative;
+    z-index: 3;
+}
+
+.time-picker-column::-webkit-scrollbar {
+    display: none;
+}
+
+.time-picker-column .time-item {
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3em;
+    font-weight: 500;
+    color: var(--text-secondary);
+    scroll-snap-align: center;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.time-picker-column .time-item.active {
+    color: var(--text-primary);
+    font-size: 1.5em;
+    font-weight: 700;
+}
+
+.time-picker-column .time-item.time-item-padding {
+    pointer-events: none;
+}
+
+.time-picker-divider {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 0 10px;
+    color: var(--text-secondary);
+    z-index: 3;
+}
+
+
+/* Action Buttons */
+.action-section {
+    margin-bottom: 3rem;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.dose-btn {
+    padding: 1.2rem;
+    background: var(--bg-secondary);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dose-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    opacity: 0.8;
+}
+
+.dose-btn:hover {
+    transform: translateY(-4px);
+    background: var(--bg-secondary);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+
+.dose-btn:active {
+    transform: translateY(-1px);
+}
+
+.dose-btn .emoji {
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.btn-text {
+    text-align: center;
+}
+
+.med-name {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Button Individual Colors */
+.hydrocodone::before {
+    background: var(--accent-red);
+}
+
+.hydrocodone:hover {
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.15);
+}
+
+.acetaminophen::before {
+    background: var(--accent-blue);
+}
+
+.acetaminophen:hover {
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15);
+}
+
+.ibuprofen::before {
+    background: var(--accent-orange);
+}
+
+.ibuprofen:hover {
+    border-color: rgba(249, 115, 22, 0.4);
+    box-shadow: 0 10px 20px rgba(249, 115, 22, 0.15);
+}
+
+.amoxicillin::before {
+    background: var(--accent-green);
+}
+
+.amoxicillin:hover {
+    border-color: rgba(34, 197, 94, 0.4);
+    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.15);
+}
+
+.ondansetron::before {
+    background: var(--accent-purple);
+}
+
+.ondansetron:hover {
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 10px 20px rgba(168, 85, 247, 0.15);
+}
+
+.rinse::before {
+    background: var(--accent-teal);
+}
+
+.rinse:hover {
+    border-color: rgba(20, 184, 166, 0.4);
+    box-shadow: 0 10px 20px rgba(20, 184, 166, 0.15);
+}
+
+/* History Section */
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.history-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.clear-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--accent-red);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Timeline View */
+.timeline-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.timeline-container.hidden {
+    display: none;
+}
+
+.timeline-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.timeline-date {
+    width: 65px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.timeline-bar-wrapper {
+    flex-grow: 1;
+    position: relative;
+    padding: 12px 0;
+    /* Expanded hit area */
+}
+
+.timeline-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    position: relative;
+}
+
+.timeline-cluster {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.timeline-cluster:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    z-index: 10;
+}
+
+.timeline-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid var(--bg-secondary);
+    position: relative;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-dot:not(:first-child) {
+    margin-left: -8px;
+}
+
+.timeline-dot:hover {
+    transform: scale(1.3);
+    z-index: 100 !important;
+}
+
+/* Timeline Dot Colors */
+.dot-hydrocodone {
+    background: var(--accent-red);
+}
+
+.dot-acetaminophen {
+    background: var(--accent-blue);
+}
+
+.dot-ibuprofen {
+    background: var(--accent-orange);
+}
+
+.dot-amoxicillin {
+    background: var(--accent-green);
+}
+
+.dot-ondansetron {
+    background: var(--accent-purple);
+}
+
+.dot-chlorhexidine {
+    background: var(--accent-teal);
+}
+
+.dot-default {
+    background: var(--text-primary);
+}
+
+.table-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    min-height: 200px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th,
+td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr {
+    transition: background-color 0.2s;
+}
+
+tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.date-col {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.time-col {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.med-col {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.med-chip {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.chip-hydrocodone {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-red);
+}
+
+.chip-acetaminophen {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+}
+
+.chip-ibuprofen {
+    background: rgba(249, 115, 22, 0.15);
+    color: var(--accent-orange);
+}
+
+.chip-amoxicillin {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--accent-green);
+}
+
+.chip-ondansetron {
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--accent-purple);
+}
+
+.chip-chlorhexidine {
+    background: rgba(20, 184, 166, 0.15);
+    color: var(--accent-teal);
+}
+
+.chip-default {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.delete-row-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 6px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-row-btn:hover {
+    color: var(--accent-red);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Empty State */
+.empty-state {
+    display: none;
+    /* Controlled by JS */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: var(--text-secondary);
+    width: 100%;
+}
+
+.empty-state i {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 1rem;
+    stroke-width: 1.5;
+    opacity: 0.5;
+}
+
+.empty-state.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #831843;
+    color: #ffffff;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 500;
+    box-shadow: 0 10px 25px rgba(236, 72, 153, 0.3);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+    z-index: 1000;
+    opacity: 0;
+}
+
+.toast.show {
+    bottom: 40px;
+    opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    th,
+    td {
+        padding: 0.8rem;
+    }
+}
