@@ -119,6 +119,37 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast"></div>
 
+    <!-- Edit Dose Modal -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Edit Dose</h3>
+            <div class="form-group">
+                <label for="edit-medicine">Medicine</label>
+                <select id="edit-medicine">
+                    <option value="Hydrocodone">Hydrocodone</option>
+                    <option value="Acetaminophen">Acetaminophen</option>
+                    <option value="Ibuprofen">Ibuprofen</option>
+                    <option value="Amoxicillin">Amoxicillin</option>
+                    <option value="Ondansetron">Ondansetron</option>
+                    <option value="Chlorhexidine">Chlorhexidine</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit-date">Date</label>
+                <input type="date" id="edit-date">
+            </div>
+            <div class="form-group">
+                <label for="edit-time">Time</label>
+                <input type="time" id="edit-time">
+            </div>
+            <input type="hidden" id="edit-id">
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+                <button class="save-btn" onclick="saveEditDose()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
     <script>
         feather.replace();

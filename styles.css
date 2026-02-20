@@ -443,23 +443,24 @@ h1 {
 
 .timeline-row {
     display: flex;
-    align-items: center;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .timeline-date {
-    width: 65px;
-    font-size: 0.85rem;
+    width: 100%;
+    font-size: 1.1rem;
     color: var(--text-secondary);
-    font-weight: 600;
-    text-align: right;
+    font-weight: 700;
+    text-align: left;
     flex-shrink: 0;
+    padding-left: 0.5rem;
 }
 
 .timeline-bar-wrapper {
     flex-grow: 1;
     position: relative;
-    padding: 12px 0;
+    padding: 4px 0 12px 0;
     /* Expanded hit area */
 }
 
@@ -706,11 +707,114 @@ tbody tr:hover {
 /* Responsive */
 @media (max-width: 480px) {
     .action-buttons {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+    }
+
+    .dose-btn {
+        padding: 0.8rem;
+        gap: 0.5rem;
+    }
+
+    .dose-btn .emoji {
+        font-size: 1.5rem;
+    }
+
+    .med-name {
+        font-size: 0.85rem;
     }
 
     th,
     td {
         padding: 0.8rem;
     }
+}
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    backdrop-filter: blur(4px);
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.modal.hidden {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h3 {
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.form-group select,
+.form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+}
+
+.cancel-btn {
+    background: transparent;
+    border: 1px solid var(--border) !important;
+    color: var(--text-secondary);
+}
+
+.save-btn {
+    background: var(--accent-pink);
+    color: white;
+    box-shadow: 0 4px 6px rgba(236, 72, 153, 0.2);
 }

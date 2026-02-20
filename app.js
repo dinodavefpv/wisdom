@@ -108,6 +108,8 @@ function renderHistory() {
 
     doseHistory.forEach(dose => {
         const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => openEditModal(dose.id);
 
         // Date cell
         const tdDate = document.createElement('td');
@@ -132,7 +134,10 @@ function renderHistory() {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-row-btn';
         deleteBtn.innerHTML = '<i data-feather="x"></i>';
-        deleteBtn.onclick = () => deleteDose(dose.id);
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteDose(dose.id);
+        };
         deleteBtn.title = "Remove entry";
         tdAction.appendChild(deleteBtn);
 
@@ -177,8 +182,17 @@ function renderTimeline() {
         grouped[dose.dateStr].push(dose);
     });
 
-    for (const dateStr in grouped) {
-        const doses = grouped[dateStr];
+    // Sort dates chronologically (Earliest -> Latest)
+    const groupedArray = Object.entries(grouped);
+    groupedArray.sort((a, b) => {
+        // Use the timestamp of the first dose in the group for comparison
+        // Note: doseHistory is Newest->Oldest, so index 0 is the newest dose of that day
+        const timeA = new Date(a[1][0].timestamp);
+        const timeB = new Date(b[1][0].timestamp);
+        return timeA - timeB;
+    });
+
+    for (const [dateStr, doses] of groupedArray) {
         const row = document.createElement('div');
         row.className = 'timeline-row';
 
@@ -409,6 +423,109 @@ async function loadFromAirtable() {
         }
     } catch (err) {
         console.error('Error loading from Airtable:', err);
+    }
+}
+
+// ============================================
+// EDIT MODAL LOGIC
+// ============================================
+
+const editModal = document.getElementById('edit-modal');
+const editMedicineInput = document.getElementById('edit-medicine');
+const editDateInput = document.getElementById('edit-date');
+const editTimeInput = document.getElementById('edit-time');
+const editIdInput = document.getElementById('edit-id');
+
+function openEditModal(id) {
+    const dose = doseHistory.find(d => d.id === id);
+    if (!dose) return;
+
+    editIdInput.value = dose.id;
+    editMedicineInput.value = dose.name;
+
+    // Parse timestamp for inputs
+    const date = new Date(dose.timestamp);
+    // Adjust for local time
+    const offset = date.getTimezoneOffset() * 60000;
+    const localDate = new Date(date.getTime() - offset);
+
+    editDateInput.value = localDate.toISOString().split('T')[0];
+    editTimeInput.value = localDate.toISOString().split('T')[1].substring(0, 5);
+
+    editModal.classList.remove('hidden');
+}
+
+function closeEditModal() {
+    editModal.classList.add('hidden');
+}
+
+function saveEditDose() {
+    const id = editIdInput.value;
+    const name = editMedicineInput.value;
+    const dateVal = editDateInput.value;
+    const timeVal = editTimeInput.value;
+
+    if (!dateVal || !timeVal) {
+        showToast("Please enter date and time");
+        return;
+    }
+
+    const dose = doseHistory.find(d => d.id === id);
+    if (!dose) return;
+
+    // Construct new timestamp
+    const newDate = new Date(`${dateVal}T${timeVal}:00`);
+
+    // Update dose object
+    dose.name = name;
+    dose.timestamp = newDate.toISOString();
+    dose.dateStr = newDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    dose.timeStr = newDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+    // Re-sort
+    doseHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    saveHistory();
+    renderHistory();
+    closeEditModal();
+    showToast("Dose updated");
+
+    // Sync to Airtable
+    if (dose.airtableId) {
+        syncUpdateToAirtable(dose);
+    } else {
+        syncToAirtable(dose);
+    }
+}
+
+async function syncUpdateToAirtable(dose) {
+    const url = `https://api.airtable.com/v0/appPOZzZ2SieNO8lf/tblh43hkDNgA9lKi4/${dose.airtableId}`;
+    const payload = {
+        fields: {
+            "Medicine": dose.name,
+            "Date": dose.dateStr,
+            "Time": dose.timeStr,
+            "timestamp": dose.timestamp
+        }
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': 'Bearer patguU4AQxNO1AQzp.a0a637c47eefb850813cb4e564f5238d0acca68ef1f72b357283ad8dd46236ea',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            console.error('Airtable update failed:', await response.text());
+        } else {
+            console.log('Successfully updated dose in Airtable');
+        }
+    } catch (err) {
+        console.error('Error updating Airtable:', err);
     }
 }
 
