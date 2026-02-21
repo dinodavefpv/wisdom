@@ -665,6 +665,12 @@ tbody tr:hover {
     transition: opacity 0.3s;
 }
 
+/* Ensure color picker modal is above edit modal if nested, or just manages z-index properly.
+   Since edit modal is 2000, we make color picker 2010 */
+#color-picker-modal {
+    z-index: 2010;
+}
+
 .modal.hidden {
     display: none;
     opacity: 0;
@@ -753,17 +759,27 @@ tbody tr:hover {
 }
 
 .med-item {
-    background: var(--bg-item); /* Changed to new lighter var */
-    border: 1px solid var(--border);
+    background: var(--bg-item);
+    /* Border is now dynamic based on med color, but defaults to border var */
+    border: 2px solid var(--med-item-border, var(--border));
     border-radius: 12px;
     overflow: hidden;
-    transition: var(--transition);
+    transition: var(--transition), border-color 0.2s;
+    user-select: none;
+    position: relative;
 }
 
 .med-item.dragging {
-    opacity: 0.5;
-    border-color: var(--accent-pink);
-    transform: scale(0.98);
+    opacity: 0.8;
+    transform: scale(1.03);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+
+.med-item.over {
+    /* Visual indicator for drop target */
+    border-top: 3px solid var(--accent-pink);
+    border-top-style: dashed;
 }
 
 .med-header {
@@ -864,14 +880,11 @@ tbody tr:hover {
     color: var(--text-primary);
 }
 
-/* New Full Color Picker Styles */
-.color-picker-container {
-    position: relative;
+/* Color Picker Trigger Button */
+.color-picker-trigger {
     width: 100%;
     height: 48px;
     border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
     border: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -880,23 +893,12 @@ tbody tr:hover {
     color: white;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
-}
-
-.color-picker-input {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    opacity: 0;
     cursor: pointer;
-    padding: 0;
-    margin: 0;
+    transition: transform 0.1s;
 }
 
-.color-value-text {
-    z-index: 2;
-    pointer-events: none;
+.color-picker-trigger:active {
+    transform: scale(0.98);
 }
 
 .med-item-actions {
@@ -925,4 +927,32 @@ tbody tr:hover {
 
 .med-item-btn:hover {
     opacity: 0.9;
+}
+
+/* Color Picker Modal Grid */
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    gap: 12px;
+    padding: 10px;
+}
+
+.color-swatch {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.color-swatch.selected {
+    border-color: var(--text-primary);
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }

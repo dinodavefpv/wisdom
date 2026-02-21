@@ -603,6 +603,9 @@ function renderEditList() {
         medItem.draggable = true;
         medItem.dataset.index = index;
 
+        // Set dynamic border color
+        medItem.style.setProperty('--med-item-border', med.color);
+
         // Drag events
         medItem.addEventListener('dragstart', handleDragStart);
         medItem.addEventListener('dragover', handleDragOver);
@@ -649,7 +652,7 @@ function renderEditList() {
         editContent.className = 'med-edit-form hidden';
         // Content populated when Edit is clicked to preserve state properly if needed,
         // but here we can pre-populate.
-
+        // Replaced native input with button that triggers modal
         editContent.innerHTML = `
              <div class="form-group">
                 <label>Name</label>
@@ -661,10 +664,10 @@ function renderEditList() {
             </div>
             <div class="form-group">
                 <label>Color</label>
-                <div class="color-picker-container" style="background-color: ${med.color}">
+                <button type="button" class="color-picker-trigger" style="background-color: ${med.color}" onclick="openColorPickerModal(this)">
                      <span class="color-value-text">${med.color}</span>
-                     <input type="color" class="color-picker-input" value="${med.color}" oninput="updateColorPreview(this)">
-                </div>
+                </button>
+                <input type="hidden" class="med-edit-input color-input" value="${med.color}">
             </div>
             <div class="med-item-actions">
                 <button class="med-item-btn" onclick="cancelEditMode(this)">Cancel</button>
@@ -702,18 +705,11 @@ function cancelEditMode(btn) {
     detailsDiv.querySelector('.med-view-mode').classList.remove('hidden');
 }
 
-function updateColorPreview(input) {
-    const container = input.parentElement;
-    const text = container.querySelector('.color-value-text');
-    container.style.backgroundColor = input.value;
-    text.textContent = input.value;
-}
-
 function saveItemChanges(btn, index) {
     const detailsDiv = btn.closest('.med-details');
     const name = detailsDiv.querySelector('.name-input').value;
     const emoji = detailsDiv.querySelector('.emoji-input').value;
-    const color = detailsDiv.querySelector('.color-picker-input').value;
+    const color = detailsDiv.querySelector('.color-input').value; // Get from hidden input
 
     if (!name) return;
 
@@ -784,6 +780,68 @@ function handleDragEnd(e) {
     items.forEach(function (item) {
         item.classList.remove('over');
     });
+}
+
+// ============================================
+// CUSTOM COLOR PICKER MODAL LOGIC
+// ============================================
+
+let activeColorTriggerBtn = null;
+
+// Predefined palette + commonly used colors
+const defaultColors = [
+    '#ef4444', '#f97316', '#3b82f6', '#22c55e',
+    '#a855f7', '#14b8a6', '#6b7280', '#eab308',
+    '#6366f1', '#ec4899', '#06b6d4', '#8b5cf6',
+    '#f43f5e', '#d946ef', '#84cc16', '#10b981'
+];
+
+function openColorPickerModal(triggerBtn) {
+    activeColorTriggerBtn = triggerBtn;
+
+    const modal = document.getElementById('color-picker-modal');
+    const grid = document.getElementById('color-grid');
+    grid.innerHTML = '';
+
+    // Collect all colors currently in use to ensure they are available
+    const usedColors = new Set(medicineConfig.map(m => m.color));
+    const allColors = new Set([...defaultColors, ...usedColors]);
+
+    allColors.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.backgroundColor = color;
+
+        // Mark selected if matches current
+        const currentColor = triggerBtn.querySelector('.color-value-text').textContent;
+        if (color.toLowerCase() === currentColor.toLowerCase()) {
+            swatch.classList.add('selected');
+        }
+
+        swatch.onclick = () => selectColor(color);
+        grid.appendChild(swatch);
+    });
+
+    modal.classList.remove('hidden');
+}
+
+function closeColorPickerModal() {
+    document.getElementById('color-picker-modal').classList.add('hidden');
+    activeColorTriggerBtn = null;
+}
+
+function selectColor(color) {
+    if (!activeColorTriggerBtn) return;
+
+    // Update trigger button visuals
+    activeColorTriggerBtn.style.backgroundColor = color;
+    activeColorTriggerBtn.querySelector('.color-value-text').textContent = color;
+
+    // Update hidden input
+    const container = activeColorTriggerBtn.parentElement;
+    container.querySelector('.color-input').value = color;
+
+    closeColorPickerModal();
 }
 
 async function saveMedicineList() {
