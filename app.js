@@ -14,6 +14,20 @@ let medicineConfig = JSON.parse(localStorage.getItem('wisdomMedicineConfig')) ||
 ];
 let isPastTimeMode = false;
 
+// FIX: Check for "Pain Killer" accidental rename and revert to "Norco"
+(function fixNorco() {
+    let changed = false;
+    const norco = medicineConfig.find(m => m.id === 'norco');
+    if (norco && norco.name === 'Pain Killer') {
+        norco.name = 'Norco';
+        changed = true;
+    }
+    if (changed) {
+        localStorage.setItem('wisdomMedicineConfig', JSON.stringify(medicineConfig));
+        console.log("Fixed 'Pain Killer' back to 'Norco' in config.");
+    }
+})();
+
 // DOM Elements
 const historyBody = document.getElementById('history-body');
 const emptyState = document.getElementById('empty-state');
@@ -448,14 +462,20 @@ async function loadFromAirtable() {
         });
         if (response.ok) {
             const data = await response.json();
-            doseHistory = data.records.map(record => ({
-                id: record.id,
-                airtableId: record.id,
-                name: record.fields.Medicine,
-                timestamp: record.fields.timestamp || new Date().toISOString(),
-                dateStr: record.fields.Date,
-                timeStr: record.fields.Time
-            }));
+            doseHistory = data.records.map(record => {
+                let medName = record.fields.Medicine;
+                // Fix for accidental rename if present in Airtable
+                if (medName === 'Pain Killer') medName = 'Norco';
+
+                return {
+                    id: record.id,
+                    airtableId: record.id,
+                    name: medName,
+                    timestamp: record.fields.timestamp || new Date().toISOString(),
+                    dateStr: record.fields.Date,
+                    timeStr: record.fields.Time
+                };
+            });
             doseHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             saveHistory();
             renderHistory();
@@ -561,6 +581,7 @@ function saveEditDose() {
 const editListModal = document.getElementById('edit-list-modal');
 const medicineListContainer = document.getElementById('medicine-list-container');
 let tempMedicineConfig = [];
+let dragSrcEl = null;
 
 function openEditListModal() {
     // Clone config to temp
@@ -577,81 +598,188 @@ function renderEditList() {
     medicineListContainer.innerHTML = '';
 
     tempMedicineConfig.forEach((med, index) => {
-        const row = document.createElement('div');
-        row.className = 'med-edit-row';
+        const medItem = document.createElement('div');
+        medItem.className = 'med-item';
+        medItem.draggable = true;
+        medItem.dataset.index = index;
 
-        // Order Buttons
-        const orderDiv = document.createElement('div');
-        orderDiv.className = 'med-edit-order';
+        // Drag events
+        medItem.addEventListener('dragstart', handleDragStart);
+        medItem.addEventListener('dragover', handleDragOver);
+        medItem.addEventListener('dragenter', handleDragEnter);
+        medItem.addEventListener('dragleave', handleDragLeave);
+        medItem.addEventListener('drop', handleDrop);
+        medItem.addEventListener('dragend', handleDragEnd);
 
-        const upBtn = document.createElement('button');
-        upBtn.innerHTML = '▲';
-        upBtn.onclick = () => moveMedicine(index, -1);
-        if (index === 0) upBtn.style.opacity = '0.3';
+        // Header
+        const header = document.createElement('div');
+        header.className = 'med-header';
+        header.onclick = (e) => toggleMedDetails(medItem, e);
 
-        const downBtn = document.createElement('button');
-        downBtn.innerHTML = '▼';
-        downBtn.onclick = () => moveMedicine(index, 1);
-        if (index === tempMedicineConfig.length - 1) downBtn.style.opacity = '0.3';
+        header.innerHTML = `
+            <div class="drag-handle">☰</div>
+            <div class="med-emoji">${med.emoji}</div>
+            <div class="med-label">${med.name}</div>
+            <button class="expand-btn">▼</button>
+        `;
 
-        orderDiv.appendChild(upBtn);
-        orderDiv.appendChild(downBtn);
+        // Details View
+        const details = document.createElement('div');
+        details.className = 'med-details';
 
-        // Emoji
-        const emojiDiv = document.createElement('div');
-        emojiDiv.className = 'med-edit-emoji';
-        emojiDiv.textContent = med.emoji;
+        // Initial Detail Content (View Mode)
+        const detailsContent = document.createElement('div');
+        detailsContent.className = 'med-view-mode';
+        detailsContent.innerHTML = `
+            <div class="detail-row">
+                <span>Name</span>
+                <span class="detail-value">${med.name}</span>
+            </div>
+            <div class="detail-row">
+                <span>Color</span>
+                <span class="detail-color-box" style="background-color: ${med.color}"></span>
+            </div>
+            <div class="med-item-actions">
+                <button class="med-item-btn" onclick="enableEditMode(this, ${index})">Edit</button>
+            </div>
+        `;
 
-        // Name Input
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = 'med-edit-name';
-        nameInput.value = med.name;
-        nameInput.onchange = (e) => updateMedicineDraft(index, 'name', e.target.value);
+        // Edit Mode Content (Hidden initially)
+        const editContent = document.createElement('div');
+        editContent.className = 'med-edit-form hidden';
+        // Content populated when Edit is clicked to preserve state properly if needed,
+        // but here we can pre-populate.
 
-        // Color Input
-        const colorInput = document.createElement('input');
-        colorInput.type = 'color';
-        colorInput.className = 'med-edit-color';
-        colorInput.value = med.color;
-        colorInput.onchange = (e) => updateMedicineDraft(index, 'color', e.target.value);
+        editContent.innerHTML = `
+             <div class="form-group">
+                <label>Name</label>
+                <input type="text" class="med-edit-input name-input" value="${med.name}">
+            </div>
+             <div class="form-group">
+                <label>Emoji</label>
+                <input type="text" class="med-edit-input emoji-input" value="${med.emoji}" maxlength="2">
+            </div>
+            <div class="form-group">
+                <label>Color</label>
+                <input type="color" class="med-edit-input color-input" style="height:40px" value="${med.color}">
+            </div>
+            <div class="med-item-actions">
+                <button class="med-item-btn" onclick="cancelEditMode(this)">Cancel</button>
+                <button class="med-item-btn primary" onclick="saveItemChanges(this, ${index})">Save</button>
+            </div>
+        `;
 
-        row.appendChild(orderDiv);
-        row.appendChild(emojiDiv);
-        row.appendChild(nameInput);
-        row.appendChild(colorInput);
+        details.appendChild(detailsContent);
+        details.appendChild(editContent);
+        medItem.appendChild(header);
+        medItem.appendChild(details);
 
-        medicineListContainer.appendChild(row);
+        medicineListContainer.appendChild(medItem);
     });
 }
 
-function moveMedicine(index, direction) {
-    if (direction === -1 && index > 0) {
-        // Swap with previous
-        const temp = tempMedicineConfig[index];
-        tempMedicineConfig[index] = tempMedicineConfig[index - 1];
-        tempMedicineConfig[index - 1] = temp;
-    } else if (direction === 1 && index < tempMedicineConfig.length - 1) {
-        // Swap with next
-        const temp = tempMedicineConfig[index];
-        tempMedicineConfig[index] = tempMedicineConfig[index + 1];
-        tempMedicineConfig[index + 1] = temp;
-    }
-    renderEditList();
+function toggleMedDetails(item, e) {
+    // Prevent toggling if clicking buttons inside header if any (though currently only expand btn)
+    // or if dragging.
+    if (e.target.closest('.drag-handle')) return;
+
+    // Close others? Optional. Let's keep multiple open support.
+    item.classList.toggle('expanded');
 }
 
-function updateMedicineDraft(index, field, value) {
-    tempMedicineConfig[index][field] = value;
+function enableEditMode(btn, index) {
+    const detailsDiv = btn.closest('.med-details');
+    detailsDiv.querySelector('.med-view-mode').classList.add('hidden');
+    detailsDiv.querySelector('.med-edit-form').classList.remove('hidden');
+}
+
+function cancelEditMode(btn) {
+    const detailsDiv = btn.closest('.med-details');
+    detailsDiv.querySelector('.med-edit-form').classList.add('hidden');
+    detailsDiv.querySelector('.med-view-mode').classList.remove('hidden');
+}
+
+function saveItemChanges(btn, index) {
+    const detailsDiv = btn.closest('.med-details');
+    const name = detailsDiv.querySelector('.name-input').value;
+    const emoji = detailsDiv.querySelector('.emoji-input').value;
+    const color = detailsDiv.querySelector('.color-input').value;
+
+    if (!name) return;
+
+    tempMedicineConfig[index].name = name;
+    tempMedicineConfig[index].emoji = emoji;
+    tempMedicineConfig[index].color = color;
+
+    // Re-render to show updated view
+    // We try to keep the expanded state if possible, but full re-render is safer for consistency
+    renderEditList();
+
+    // Find the item and expand it again
+    const newItem = medicineListContainer.children[index];
+    if (newItem) newItem.classList.add('expanded');
+}
+
+
+// Drag and Drop Handlers
+function handleDragStart(e) {
+    this.style.opacity = '0.4';
+    dragSrcEl = this;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+    this.classList.add('dragging');
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    this.classList.add('over');
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+
+    if (dragSrcEl !== this) {
+        const srcIndex = parseInt(dragSrcEl.dataset.index);
+        const targetIndex = parseInt(this.dataset.index);
+
+        // Swap in array
+        // We need to move the item from src to target
+        const itemToMove = tempMedicineConfig[srcIndex];
+        tempMedicineConfig.splice(srcIndex, 1);
+        tempMedicineConfig.splice(targetIndex, 0, itemToMove);
+
+        renderEditList();
+    }
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.style.opacity = '1';
+    this.classList.remove('dragging');
+
+    const items = document.querySelectorAll('.med-item');
+    items.forEach(function (item) {
+        item.classList.remove('over');
+    });
 }
 
 async function saveMedicineList() {
     // Identify renames
     const renames = [];
     tempMedicineConfig.forEach((newMed, i) => {
-        // We track renames by ID if possible, but currently ID is just a string that might not be persistent across sessions if I generated it.
-        // Wait, app.js initialized medicineConfig with IDs like 'norco', 'acetaminophen'.
-        // So I should look up the original medicine by ID.
-
         const original = medicineConfig.find(m => m.id === newMed.id);
         if (original && original.name !== newMed.name) {
             renames.push({

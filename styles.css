@@ -84,6 +84,9 @@ h1 {
     align-items: center;
     gap: 0.5rem;
     transition: var(--transition);
+    margin-top: 1rem; /* Added margin for placement below action buttons */
+    width: 100%; /* Full width for better touch target below list */
+    justify-content: center;
 }
 
 .edit-list-btn:hover {
@@ -313,6 +316,7 @@ h1 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+    margin-bottom: 1.5rem; /* Space for edit button below */
 }
 
 .dose-btn {
@@ -747,64 +751,142 @@ tbody tr:hover {
     margin-bottom: 1.5rem;
 }
 
-.med-edit-row {
+.med-item {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.med-item.dragging {
+    opacity: 0.5;
+    border-color: var(--accent-pink);
+    transform: scale(0.98);
+}
+
+.med-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    gap: 1rem;
+    cursor: pointer;
     background: var(--bg-tertiary);
-    padding: 0.5rem;
-    border-radius: 8px;
-    border: 1px solid var(--border);
+    user-select: none;
 }
 
-.med-edit-order {
+.med-header:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.drag-handle {
+    color: var(--text-secondary);
+    cursor: grab;
+    font-size: 1.2rem;
+    padding: 0.2rem;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
 }
 
-.med-edit-order button {
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.med-emoji {
+    font-size: 1.5rem;
+}
+
+.med-label {
+    flex: 1;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.expand-btn {
     background: transparent;
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 0.6rem;
-    padding: 2px;
-    line-height: 1;
+    transition: transform 0.3s;
+    font-size: 0.8rem;
 }
 
-.med-edit-order button:hover {
+.med-item.expanded .expand-btn {
+    transform: rotate(180deg);
+}
+
+.med-details {
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-top: 1px solid var(--border);
+    display: none;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.med-item.expanded .med-details {
+    display: flex;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.detail-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.detail-color-box {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.med-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.med-edit-input {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
     color: var(--text-primary);
 }
 
-.med-edit-emoji {
-    font-size: 1.5rem;
-    width: 30px;
-    text-align: center;
+.med-item-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
 }
 
-.med-edit-name {
+.med-item-btn {
     flex: 1;
-    padding: 0.4rem;
-    font-size: 0.9rem;
-}
-
-.med-edit-color {
-    width: 40px;
-    height: 35px;
-    border: none;
-    padding: 0;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.med-edit-color::-webkit-color-swatch-wrapper {
-    padding: 0;
-}
-
-.med-edit-color::-webkit-color-swatch {
+    padding: 0.5rem;
+    border-radius: 6px;
     border: 1px solid var(--border);
-    border-radius: 4px;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.med-item-btn.primary {
+    background: var(--accent-pink);
+    color: white;
+    border: none;
+}
+
+.med-item-btn:hover {
+    opacity: 0.9;
 }
