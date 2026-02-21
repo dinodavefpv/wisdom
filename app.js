@@ -362,7 +362,8 @@ async function syncToAirtable(dose) {
                     "timestamp": dose.timestamp
                 }
             }
-        ]
+        ],
+        typecast: true
     };
 
     try {
@@ -511,7 +512,8 @@ async function syncUpdateToAirtable(dose) {
             "Date": dose.dateStr,
             "Time": dose.timeStr,
             "timestamp": dose.timestamp
-        }
+        },
+        typecast: true
     };
 
     try {
