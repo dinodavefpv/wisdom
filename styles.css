@@ -68,6 +68,33 @@ h1 {
 .subtitle {
     color: var(--text-secondary);
     font-size: 1.05rem;
+    margin-bottom: 1rem;
+}
+
+.edit-list-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.edit-list-btn:hover {
+    background: rgba(255, 105, 180, 0.05);
+    color: var(--text-primary);
+    border-color: var(--accent-pink);
+}
+
+.edit-list-btn i {
+    width: 14px;
+    height: 14px;
 }
 
 /* Past Time Section */
@@ -315,12 +342,14 @@ h1 {
     right: 0;
     height: 4px;
     opacity: 0.8;
+    background: var(--med-color, var(--text-primary));
 }
 
 .dose-btn:hover {
     transform: translateY(-4px);
     background: var(--bg-secondary);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+    border-color: rgba(var(--med-color-rgb), 0.4);
+    box-shadow: 0 10px 20px rgba(var(--med-color-rgb), 0.15);
 }
 
 .dose-btn:active {
@@ -340,97 +369,6 @@ h1 {
     display: block;
     font-weight: 600;
     font-size: 0.95rem;
-}
-
-/* Button Individual Colors */
-.norco::before {
-    background: var(--accent-red);
-}
-
-.norco:hover {
-    border-color: rgba(239, 68, 68, 0.4);
-    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.15);
-}
-
-.acetaminophen::before {
-    background: var(--accent-orange);
-}
-
-.acetaminophen:hover {
-    border-color: rgba(249, 115, 22, 0.4);
-    box-shadow: 0 10px 20px rgba(249, 115, 22, 0.15);
-}
-
-.ibuprofen::before {
-    background: var(--accent-blue);
-}
-
-.ibuprofen:hover {
-    border-color: rgba(59, 130, 246, 0.4);
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15);
-}
-
-.amoxicillin::before {
-    background: var(--accent-green);
-}
-
-.amoxicillin:hover {
-    border-color: rgba(34, 197, 94, 0.4);
-    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.15);
-}
-
-.ondansetron::before {
-    background: var(--accent-purple);
-}
-
-.ondansetron:hover {
-    border-color: rgba(168, 85, 247, 0.4);
-    box-shadow: 0 10px 20px rgba(168, 85, 247, 0.15);
-}
-
-.rinse::before {
-    background: var(--accent-teal);
-}
-
-.rinse:hover {
-    border-color: rgba(20, 184, 166, 0.4);
-    box-shadow: 0 10px 20px rgba(20, 184, 166, 0.15);
-}
-
-.nicotine::before {
-    background: var(--accent-gray);
-}
-
-.nicotine:hover {
-    border-color: rgba(107, 114, 128, 0.4);
-    box-shadow: 0 10px 20px rgba(107, 114, 128, 0.15);
-}
-
-.quetiapine::before {
-    background: var(--accent-yellow);
-}
-
-.quetiapine:hover {
-    border-color: rgba(234, 179, 8, 0.4);
-    box-shadow: 0 10px 20px rgba(234, 179, 8, 0.15);
-}
-
-.lorazepam::before {
-    background: var(--accent-indigo);
-}
-
-.lorazepam:hover {
-    border-color: rgba(99, 102, 241, 0.4);
-    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.15);
-}
-
-.adderall::before {
-    background: var(--accent-orange);
-}
-
-.adderall:hover {
-    border-color: rgba(249, 115, 22, 0.4);
-    box-shadow: 0 10px 20px rgba(249, 115, 22, 0.15);
 }
 
 /* History Section */
@@ -546,51 +484,6 @@ h1 {
     z-index: 100 !important;
 }
 
-/* Timeline Dot Colors */
-.dot-norco {
-    background: var(--accent-red);
-}
-
-.dot-acetaminophen {
-    background: var(--accent-orange);
-}
-
-.dot-ibuprofen {
-    background: var(--accent-blue);
-}
-
-.dot-amoxicillin {
-    background: var(--accent-green);
-}
-
-.dot-ondansetron {
-    background: var(--accent-purple);
-}
-
-.dot-chlorhexidine {
-    background: var(--accent-teal);
-}
-
-.dot-nicotine {
-    background: var(--accent-gray);
-}
-
-.dot-quetiapine {
-    background: var(--accent-yellow);
-}
-
-.dot-lorazepam {
-    background: var(--accent-indigo);
-}
-
-.dot-adderall {
-    background: var(--accent-orange);
-}
-
-.dot-default {
-    background: var(--text-primary);
-}
-
 .table-container {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
@@ -655,61 +548,6 @@ tbody tr:hover {
     font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
-}
-
-.chip-norco {
-    background: rgba(239, 68, 68, 0.15);
-    color: var(--accent-red);
-}
-
-.chip-acetaminophen {
-    background: rgba(249, 115, 22, 0.15);
-    color: var(--accent-orange);
-}
-
-.chip-ibuprofen {
-    background: rgba(59, 130, 246, 0.15);
-    color: var(--accent-blue);
-}
-
-.chip-amoxicillin {
-    background: rgba(34, 197, 94, 0.15);
-    color: var(--accent-green);
-}
-
-.chip-ondansetron {
-    background: rgba(168, 85, 247, 0.15);
-    color: var(--accent-purple);
-}
-
-.chip-chlorhexidine {
-    background: rgba(20, 184, 166, 0.15);
-    color: var(--accent-teal);
-}
-
-.chip-nicotine {
-    background: rgba(107, 114, 128, 0.15);
-    color: var(--accent-gray);
-}
-
-.chip-quetiapine {
-    background: rgba(234, 179, 8, 0.15);
-    color: var(--accent-yellow);
-}
-
-.chip-lorazepam {
-    background: rgba(99, 102, 241, 0.15);
-    color: var(--accent-indigo);
-}
-
-.chip-adderall {
-    background: rgba(249, 115, 22, 0.15);
-    color: var(--accent-orange);
-}
-
-.chip-default {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
 }
 
 .delete-row-btn {
@@ -836,6 +674,12 @@ tbody tr:hover {
     max-width: 400px;
     border: 1px solid var(--border);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content.modal-large {
+    max-width: 500px;
 }
 
 .modal-content h3 {
@@ -893,4 +737,74 @@ tbody tr:hover {
     background: var(--accent-pink);
     color: white;
     box-shadow: 0 4px 6px rgba(236, 72, 153, 0.2);
+}
+
+/* Medicine Edit List Styles */
+.medicine-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.med-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-tertiary);
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.med-edit-order {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.med-edit-order button {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.6rem;
+    padding: 2px;
+    line-height: 1;
+}
+
+.med-edit-order button:hover {
+    color: var(--text-primary);
+}
+
+.med-edit-emoji {
+    font-size: 1.5rem;
+    width: 30px;
+    text-align: center;
+}
+
+.med-edit-name {
+    flex: 1;
+    padding: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.med-edit-color {
+    width: 40px;
+    height: 35px;
+    border: none;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.med-edit-color::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.med-edit-color::-webkit-color-swatch {
+    border: 1px solid var(--border);
+    border-radius: 4px;
 }
