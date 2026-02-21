@@ -661,7 +661,10 @@ function renderEditList() {
             </div>
             <div class="form-group">
                 <label>Color</label>
-                <input type="color" class="med-edit-input color-input" style="height:40px" value="${med.color}">
+                <div class="color-picker-container" style="background-color: ${med.color}">
+                     <span class="color-value-text">${med.color}</span>
+                     <input type="color" class="color-picker-input" value="${med.color}" oninput="updateColorPreview(this)">
+                </div>
             </div>
             <div class="med-item-actions">
                 <button class="med-item-btn" onclick="cancelEditMode(this)">Cancel</button>
@@ -699,11 +702,18 @@ function cancelEditMode(btn) {
     detailsDiv.querySelector('.med-view-mode').classList.remove('hidden');
 }
 
+function updateColorPreview(input) {
+    const container = input.parentElement;
+    const text = container.querySelector('.color-value-text');
+    container.style.backgroundColor = input.value;
+    text.textContent = input.value;
+}
+
 function saveItemChanges(btn, index) {
     const detailsDiv = btn.closest('.med-details');
     const name = detailsDiv.querySelector('.name-input').value;
     const emoji = detailsDiv.querySelector('.emoji-input').value;
-    const color = detailsDiv.querySelector('.color-input').value;
+    const color = detailsDiv.querySelector('.color-picker-input').value;
 
     if (!name) return;
 
