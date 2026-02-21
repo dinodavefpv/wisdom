@@ -43,20 +43,20 @@
         <section class="action-section">
             <div class="action-buttons">
                 <!-- Pain Relief -->
-                <button class="dose-btn hydrocodone" onclick="logMedicine('Hydrocodone')">
+                <button class="dose-btn norco" onclick="logMedicine('Norco')">
                     <span class="emoji">💊</span>
                     <div class="btn-text">
-                        <span class="med-name">Hydrocodone</span>
+                        <span class="med-name">Norco</span>
                     </div>
                 </button>
                 <button class="dose-btn acetaminophen" onclick="logMedicine('Acetaminophen')">
-                    <span class="emoji">🔵</span>
+                    <span class="emoji">🟠</span>
                     <div class="btn-text">
                         <span class="med-name">Acetaminophen</span>
                     </div>
                 </button>
                 <button class="dose-btn ibuprofen" onclick="logMedicine('Ibuprofen')">
-                    <span class="emoji">🟠</span>
+                    <span class="emoji">🔵</span>
                     <div class="btn-text">
                         <span class="med-name">Ibuprofen</span>
                     </div>
@@ -79,6 +79,32 @@
                     <span class="emoji">💧</span>
                     <div class="btn-text">
                         <span class="med-name">Chlorhexidine</span>
+                    </div>
+                </button>
+
+                <!-- Additional Meds -->
+                <button class="dose-btn nicotine" onclick="logMedicine('Nicotine Patch')">
+                    <span class="emoji">🩹</span>
+                    <div class="btn-text">
+                        <span class="med-name">Nicotine Patch</span>
+                    </div>
+                </button>
+                <button class="dose-btn quetiapine" onclick="logMedicine('Quetiapine')">
+                    <span class="emoji">😴</span>
+                    <div class="btn-text">
+                        <span class="med-name">Quetiapine</span>
+                    </div>
+                </button>
+                <button class="dose-btn lorazepam" onclick="logMedicine('Lorazepam')">
+                    <span class="emoji">🧘</span>
+                    <div class="btn-text">
+                        <span class="med-name">Lorazepam</span>
+                    </div>
+                </button>
+                <button class="dose-btn adderall" onclick="logMedicine('Adderall')">
+                    <span class="emoji">⚡</span>
+                    <div class="btn-text">
+                        <span class="med-name">Adderall</span>
                     </div>
                 </button>
             </div>
@@ -126,12 +152,16 @@
             <div class="form-group">
                 <label for="edit-medicine">Medicine</label>
                 <select id="edit-medicine">
-                    <option value="Hydrocodone">Hydrocodone</option>
+                    <option value="Norco">Norco</option>
                     <option value="Acetaminophen">Acetaminophen</option>
                     <option value="Ibuprofen">Ibuprofen</option>
                     <option value="Amoxicillin">Amoxicillin</option>
                     <option value="Ondansetron">Ondansetron</option>
                     <option value="Chlorhexidine">Chlorhexidine</option>
+                    <option value="Nicotine Patch">Nicotine Patch</option>
+                    <option value="Quetiapine">Quetiapine</option>
+                    <option value="Lorazepam">Lorazepam</option>
+                    <option value="Adderall">Adderall</option>
                 </select>
             </div>
             <div class="form-group">
