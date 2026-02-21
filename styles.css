@@ -26,6 +26,10 @@
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.hidden {
+    display: none !important;
+}
+
 * {
     margin: 0;
     padding: 0;
