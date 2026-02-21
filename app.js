@@ -1,17 +1,59 @@
 // Medicine Tracker State
 let doseHistory = JSON.parse(localStorage.getItem('wisdomMedicineHistory')) || [];
+let medicineConfig = JSON.parse(localStorage.getItem('wisdomMedicineConfig')) || [
+    { id: 'norco', name: 'Norco', emoji: '💊', color: '#ef4444' },
+    { id: 'acetaminophen', name: 'Acetaminophen', emoji: '🟠', color: '#f97316' },
+    { id: 'ibuprofen', name: 'Ibuprofen', emoji: '🔵', color: '#3b82f6' },
+    { id: 'amoxicillin', name: 'Amoxicillin', emoji: '🦠', color: '#22c55e' },
+    { id: 'ondansetron', name: 'Ondansetron', emoji: '🤢', color: '#a855f7' },
+    { id: 'chlorhexidine', name: 'Chlorhexidine', emoji: '💧', color: '#14b8a6' },
+    { id: 'nicotine', name: 'Nicotine Patch', emoji: '🩹', color: '#6b7280' },
+    { id: 'quetiapine', name: 'Quetiapine', emoji: '😴', color: '#eab308' },
+    { id: 'lorazepam', name: 'Lorazepam', emoji: '🧘', color: '#6366f1' },
+    { id: 'adderall', name: 'Adderall', emoji: '⚡', color: '#f97316' }
+];
 let isPastTimeMode = false;
 
 // DOM Elements
 const historyBody = document.getElementById('history-body');
 const emptyState = document.getElementById('empty-state');
 const toastEl = document.getElementById('toast');
+const actionButtonsContainer = document.querySelector('.action-buttons');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    renderActionButtons();
     renderHistory();
     loadFromAirtable();
 });
+
+function renderActionButtons() {
+    if (!actionButtonsContainer) return;
+    actionButtonsContainer.innerHTML = '';
+
+    medicineConfig.forEach(med => {
+        const btn = document.createElement('button');
+        btn.className = 'dose-btn';
+        btn.style.setProperty('--med-color', med.color);
+
+        // Convert hex to rgb for rgba usage in CSS
+        const rgb = hexToRgb(med.color);
+        if (rgb) {
+            btn.style.setProperty('--med-color-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+        }
+
+        btn.onclick = () => logMedicine(med.name);
+
+        btn.innerHTML = `
+            <span class="emoji">${med.emoji}</span>
+            <div class="btn-text">
+                <span class="med-name">${med.name}</span>
+            </div>
+        `;
+
+        actionButtonsContainer.appendChild(btn);
+    });
+}
 
 // Main Logging Function
 function logMedicine(medicineName) {
@@ -79,23 +121,10 @@ function togglePastTime() {
     }
 }
 
-// Helper for Colored Chips
-function getMedicineColorClass(name) {
-    const map = {
-        'Norco': 'chip-norco',
-        'Hydrocodone': 'chip-norco',
-        'Acetaminophen': 'chip-acetaminophen',
-        'Ibuprofen': 'chip-ibuprofen',
-        'Amoxicillin': 'chip-amoxicillin',
-        'Ondansetron': 'chip-ondansetron',
-        'Chlorhexidine': 'chip-chlorhexidine',
-        'Nicotine Patch': 'chip-nicotine',
-        'Quetiapine': 'chip-quetiapine',
-        'Lorazepam': 'chip-lorazepam',
-        'Adderall': 'chip-adderall',
-        'Medicated Mouth Rinse': 'chip-chlorhexidine' // fallback for old data
-    };
-    return map[name] || 'chip-default';
+// Helper for Medicine Color
+function getMedicineColor(name) {
+    const med = medicineConfig.find(m => m.name === name);
+    return med ? med.color : 'var(--text-primary)';
 }
 
 // Render Table
@@ -130,7 +159,15 @@ function renderHistory() {
         const tdMed = document.createElement('td');
         tdMed.className = 'med-col';
         const medChip = document.createElement('span');
-        medChip.className = `med-chip ${getMedicineColorClass(dose.name)}`;
+        medChip.className = 'med-chip';
+
+        const color = getMedicineColor(dose.name);
+        const rgb = hexToRgb(color) || { r: 255, g: 255, b: 255 }; // fallback
+
+        // Dynamic styles for chip
+        medChip.style.backgroundColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
+        medChip.style.color = color;
+
         medChip.textContent = dose.name;
         tdMed.appendChild(medChip);
 
@@ -161,11 +198,6 @@ function renderHistory() {
 }
 
 // Render Timeline View
-function getMedicineDotClass(name) {
-    const classStr = getMedicineColorClass(name);
-    return classStr.replace('chip-', 'dot-');
-}
-
 function renderTimeline() {
     const container = document.getElementById('timeline-container');
     if (!container) return; // safeguard
@@ -255,7 +287,8 @@ function renderTimeline() {
 
             clusterDoses.forEach((dose, index) => {
                 const dot = document.createElement('div');
-                dot.className = `timeline-dot ${getMedicineDotClass(dose.name)}`;
+                dot.className = 'timeline-dot';
+                dot.style.backgroundColor = getMedicineColor(dose.name);
                 dot.title = `${dose.name} at ${dose.timeStr}`;
                 dot.style.zIndex = clusterDoses.length - index;
                 clusterEl.appendChild(dot);
@@ -446,6 +479,23 @@ function openEditModal(id) {
     const dose = doseHistory.find(d => d.id === id);
     if (!dose) return;
 
+    // Populate select options dynamically
+    editMedicineInput.innerHTML = '';
+    medicineConfig.forEach(med => {
+        const option = document.createElement('option');
+        option.value = med.name;
+        option.textContent = med.name;
+        editMedicineInput.appendChild(option);
+    });
+
+    // Check if current dose name is in the list, if not add it temporarily
+    if (!medicineConfig.find(m => m.name === dose.name)) {
+        const option = document.createElement('option');
+        option.value = dose.name;
+        option.textContent = dose.name + " (Archived)";
+        editMedicineInput.appendChild(option);
+    }
+
     editIdInput.value = dose.id;
     editMedicineInput.value = dose.name;
 
@@ -502,6 +552,186 @@ function saveEditDose() {
     } else {
         syncToAirtable(dose);
     }
+}
+
+// ============================================
+// EDIT MEDICINE LIST MODAL LOGIC
+// ============================================
+
+const editListModal = document.getElementById('edit-list-modal');
+const medicineListContainer = document.getElementById('medicine-list-container');
+let tempMedicineConfig = [];
+
+function openEditListModal() {
+    // Clone config to temp
+    tempMedicineConfig = JSON.parse(JSON.stringify(medicineConfig));
+    renderEditList();
+    editListModal.classList.remove('hidden');
+}
+
+function closeEditListModal() {
+    editListModal.classList.add('hidden');
+}
+
+function renderEditList() {
+    medicineListContainer.innerHTML = '';
+
+    tempMedicineConfig.forEach((med, index) => {
+        const row = document.createElement('div');
+        row.className = 'med-edit-row';
+
+        // Order Buttons
+        const orderDiv = document.createElement('div');
+        orderDiv.className = 'med-edit-order';
+
+        const upBtn = document.createElement('button');
+        upBtn.innerHTML = '▲';
+        upBtn.onclick = () => moveMedicine(index, -1);
+        if (index === 0) upBtn.style.opacity = '0.3';
+
+        const downBtn = document.createElement('button');
+        downBtn.innerHTML = '▼';
+        downBtn.onclick = () => moveMedicine(index, 1);
+        if (index === tempMedicineConfig.length - 1) downBtn.style.opacity = '0.3';
+
+        orderDiv.appendChild(upBtn);
+        orderDiv.appendChild(downBtn);
+
+        // Emoji
+        const emojiDiv = document.createElement('div');
+        emojiDiv.className = 'med-edit-emoji';
+        emojiDiv.textContent = med.emoji;
+
+        // Name Input
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'med-edit-name';
+        nameInput.value = med.name;
+        nameInput.onchange = (e) => updateMedicineDraft(index, 'name', e.target.value);
+
+        // Color Input
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.className = 'med-edit-color';
+        colorInput.value = med.color;
+        colorInput.onchange = (e) => updateMedicineDraft(index, 'color', e.target.value);
+
+        row.appendChild(orderDiv);
+        row.appendChild(emojiDiv);
+        row.appendChild(nameInput);
+        row.appendChild(colorInput);
+
+        medicineListContainer.appendChild(row);
+    });
+}
+
+function moveMedicine(index, direction) {
+    if (direction === -1 && index > 0) {
+        // Swap with previous
+        const temp = tempMedicineConfig[index];
+        tempMedicineConfig[index] = tempMedicineConfig[index - 1];
+        tempMedicineConfig[index - 1] = temp;
+    } else if (direction === 1 && index < tempMedicineConfig.length - 1) {
+        // Swap with next
+        const temp = tempMedicineConfig[index];
+        tempMedicineConfig[index] = tempMedicineConfig[index + 1];
+        tempMedicineConfig[index + 1] = temp;
+    }
+    renderEditList();
+}
+
+function updateMedicineDraft(index, field, value) {
+    tempMedicineConfig[index][field] = value;
+}
+
+async function saveMedicineList() {
+    // Identify renames
+    const renames = [];
+    tempMedicineConfig.forEach((newMed, i) => {
+        // We track renames by ID if possible, but currently ID is just a string that might not be persistent across sessions if I generated it.
+        // Wait, app.js initialized medicineConfig with IDs like 'norco', 'acetaminophen'.
+        // So I should look up the original medicine by ID.
+
+        const original = medicineConfig.find(m => m.id === newMed.id);
+        if (original && original.name !== newMed.name) {
+            renames.push({
+                from: original.name,
+                to: newMed.name
+            });
+        }
+    });
+
+    // Update config
+    medicineConfig = JSON.parse(JSON.stringify(tempMedicineConfig));
+    localStorage.setItem('wisdomMedicineConfig', JSON.stringify(medicineConfig));
+
+    // Process renames in history
+    let historyChanged = false;
+    const dosesToUpdate = [];
+
+    renames.forEach(rename => {
+        doseHistory.forEach(dose => {
+            if (dose.name === rename.from) {
+                dose.name = rename.to;
+                historyChanged = true;
+
+                // Collect for Airtable update
+                if (dose.airtableId) {
+                    dosesToUpdate.push(dose);
+                }
+            }
+        });
+    });
+
+    if (historyChanged) {
+        saveHistory();
+        renderHistory();
+
+        if (dosesToUpdate.length > 0) {
+            batchUpdateAirtable(dosesToUpdate);
+        }
+    }
+
+    renderActionButtons();
+    closeEditListModal();
+    showToast("Medicine list updated");
+}
+
+async function batchUpdateAirtable(doses) {
+    const url = 'https://api.airtable.com/v0/appPOZzZ2SieNO8lf/tblh43hkDNgA9lKi4';
+
+    // Process in chunks of 10
+    for (let i = 0; i < doses.length; i += 10) {
+        const chunk = doses.slice(i, i + 10);
+        const payload = {
+            records: chunk.map(dose => ({
+                id: dose.airtableId,
+                fields: {
+                    "Medicine": dose.name,
+                    "Date": dose.dateStr,
+                    "Time": dose.timeStr,
+                    "timestamp": dose.timestamp
+                }
+            })),
+            typecast: true
+        };
+
+        try {
+            await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': 'Bearer patguU4AQxNO1AQzp.a0a637c47eefb850813cb4e564f5238d0acca68ef1f72b357283ad8dd46236ea',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            // Simple delay to respect rate limits (5 req/sec)
+            await new Promise(r => setTimeout(r, 250));
+        } catch (err) {
+            console.error("Error batch updating Airtable:", err);
+        }
+    }
+    console.log(`Updated ${doses.length} records in Airtable`);
 }
 
 async function syncUpdateToAirtable(dose) {
@@ -585,6 +815,21 @@ function setupDaySelector() {
 
     // Auto-scroll to end (today)
     daySelector.scrollLeft = daySelector.scrollWidth;
+}
+
+function hexToRgb(hex) {
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+        return r + r + g + g + b + b;
+    });
+
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
 }
 
 function initializeTimePicker() {

@@ -18,6 +18,9 @@
         <header>
             <h1>Med Tracker</h1>
             <p class="subtitle">Quick log your wisdom medications</p>
+            <button class="edit-list-btn" onclick="openEditListModal()">
+                <i data-feather="edit-2"></i> Edit Medicine List
+            </button>
         </header>
 
         <section class="past-time-section">
@@ -42,71 +45,7 @@
 
         <section class="action-section">
             <div class="action-buttons">
-                <!-- Pain Relief -->
-                <button class="dose-btn norco" onclick="logMedicine('Norco')">
-                    <span class="emoji">💊</span>
-                    <div class="btn-text">
-                        <span class="med-name">Norco</span>
-                    </div>
-                </button>
-                <button class="dose-btn acetaminophen" onclick="logMedicine('Acetaminophen')">
-                    <span class="emoji">🟠</span>
-                    <div class="btn-text">
-                        <span class="med-name">Acetaminophen</span>
-                    </div>
-                </button>
-                <button class="dose-btn ibuprofen" onclick="logMedicine('Ibuprofen')">
-                    <span class="emoji">🔵</span>
-                    <div class="btn-text">
-                        <span class="med-name">Ibuprofen</span>
-                    </div>
-                </button>
-
-                <!-- Antibiotics & Other -->
-                <button class="dose-btn amoxicillin" onclick="logMedicine('Amoxicillin')">
-                    <span class="emoji">🦠</span>
-                    <div class="btn-text">
-                        <span class="med-name">Amoxicillin</span>
-                    </div>
-                </button>
-                <button class="dose-btn ondansetron" onclick="logMedicine('Ondansetron')">
-                    <span class="emoji">🤢</span>
-                    <div class="btn-text">
-                        <span class="med-name">Ondansetron</span>
-                    </div>
-                </button>
-                <button class="dose-btn rinse" onclick="logMedicine('Chlorhexidine')">
-                    <span class="emoji">💧</span>
-                    <div class="btn-text">
-                        <span class="med-name">Chlorhexidine</span>
-                    </div>
-                </button>
-
-                <!-- Additional Meds -->
-                <button class="dose-btn nicotine" onclick="logMedicine('Nicotine Patch')">
-                    <span class="emoji">🩹</span>
-                    <div class="btn-text">
-                        <span class="med-name">Nicotine Patch</span>
-                    </div>
-                </button>
-                <button class="dose-btn quetiapine" onclick="logMedicine('Quetiapine')">
-                    <span class="emoji">😴</span>
-                    <div class="btn-text">
-                        <span class="med-name">Quetiapine</span>
-                    </div>
-                </button>
-                <button class="dose-btn lorazepam" onclick="logMedicine('Lorazepam')">
-                    <span class="emoji">🧘</span>
-                    <div class="btn-text">
-                        <span class="med-name">Lorazepam</span>
-                    </div>
-                </button>
-                <button class="dose-btn adderall" onclick="logMedicine('Adderall')">
-                    <span class="emoji">⚡</span>
-                    <div class="btn-text">
-                        <span class="med-name">Adderall</span>
-                    </div>
-                </button>
+                <!-- Buttons will be injected here via JS -->
             </div>
         </section>
 
@@ -152,16 +91,7 @@
             <div class="form-group">
                 <label for="edit-medicine">Medicine</label>
                 <select id="edit-medicine">
-                    <option value="Norco">Norco</option>
-                    <option value="Acetaminophen">Acetaminophen</option>
-                    <option value="Ibuprofen">Ibuprofen</option>
-                    <option value="Amoxicillin">Amoxicillin</option>
-                    <option value="Ondansetron">Ondansetron</option>
-                    <option value="Chlorhexidine">Chlorhexidine</option>
-                    <option value="Nicotine Patch">Nicotine Patch</option>
-                    <option value="Quetiapine">Quetiapine</option>
-                    <option value="Lorazepam">Lorazepam</option>
-                    <option value="Adderall">Adderall</option>
+                    <!-- Options populated by JS -->
                 </select>
             </div>
             <div class="form-group">
@@ -176,6 +106,21 @@
             <div class="modal-actions">
                 <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
                 <button class="save-btn" onclick="saveEditDose()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Medicine List Modal -->
+    <div id="edit-list-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <h3>Edit Medicine List</h3>
+            <div id="medicine-list-container" class="medicine-list-container">
+                <!-- Medicine items injected here -->
+            </div>
+
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeEditListModal()">Cancel</button>
+                <button class="save-btn" onclick="saveMedicineList()">Save Changes</button>
             </div>
         </div>
     </div>
