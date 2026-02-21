@@ -82,12 +82,17 @@ function togglePastTime() {
 // Helper for Colored Chips
 function getMedicineColorClass(name) {
     const map = {
-        'Hydrocodone': 'chip-hydrocodone',
+        'Norco': 'chip-norco',
+        'Hydrocodone': 'chip-norco',
         'Acetaminophen': 'chip-acetaminophen',
         'Ibuprofen': 'chip-ibuprofen',
         'Amoxicillin': 'chip-amoxicillin',
         'Ondansetron': 'chip-ondansetron',
         'Chlorhexidine': 'chip-chlorhexidine',
+        'Nicotine Patch': 'chip-nicotine',
+        'Quetiapine': 'chip-quetiapine',
+        'Lorazepam': 'chip-lorazepam',
+        'Adderall': 'chip-adderall',
         'Medicated Mouth Rinse': 'chip-chlorhexidine' // fallback for old data
     };
     return map[name] || 'chip-default';

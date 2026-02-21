@@ -15,6 +15,10 @@
     --accent-purple: #a855f7;
     --accent-teal: #14b8a6;
     --accent-pink: #ec4899;
+    --accent-yellow: #eab308;
+    --accent-indigo: #6366f1;
+    --accent-cyan: #06b6d4;
+    --accent-gray: #6b7280;
 
     --border: #f472b6;
 
@@ -339,31 +343,31 @@ h1 {
 }
 
 /* Button Individual Colors */
-.hydrocodone::before {
+.norco::before {
     background: var(--accent-red);
 }
 
-.hydrocodone:hover {
+.norco:hover {
     border-color: rgba(239, 68, 68, 0.4);
     box-shadow: 0 10px 20px rgba(239, 68, 68, 0.15);
 }
 
 .acetaminophen::before {
-    background: var(--accent-blue);
-}
-
-.acetaminophen:hover {
-    border-color: rgba(59, 130, 246, 0.4);
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15);
-}
-
-.ibuprofen::before {
     background: var(--accent-orange);
 }
 
-.ibuprofen:hover {
+.acetaminophen:hover {
     border-color: rgba(249, 115, 22, 0.4);
     box-shadow: 0 10px 20px rgba(249, 115, 22, 0.15);
+}
+
+.ibuprofen::before {
+    background: var(--accent-blue);
+}
+
+.ibuprofen:hover {
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15);
 }
 
 .amoxicillin::before {
@@ -391,6 +395,42 @@ h1 {
 .rinse:hover {
     border-color: rgba(20, 184, 166, 0.4);
     box-shadow: 0 10px 20px rgba(20, 184, 166, 0.15);
+}
+
+.nicotine::before {
+    background: var(--accent-gray);
+}
+
+.nicotine:hover {
+    border-color: rgba(107, 114, 128, 0.4);
+    box-shadow: 0 10px 20px rgba(107, 114, 128, 0.15);
+}
+
+.quetiapine::before {
+    background: var(--accent-yellow);
+}
+
+.quetiapine:hover {
+    border-color: rgba(234, 179, 8, 0.4);
+    box-shadow: 0 10px 20px rgba(234, 179, 8, 0.15);
+}
+
+.lorazepam::before {
+    background: var(--accent-indigo);
+}
+
+.lorazepam:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.15);
+}
+
+.adderall::before {
+    background: var(--accent-cyan);
+}
+
+.adderall:hover {
+    border-color: rgba(6, 182, 212, 0.4);
+    box-shadow: 0 10px 20px rgba(6, 182, 212, 0.15);
 }
 
 /* History Section */
@@ -507,16 +547,16 @@ h1 {
 }
 
 /* Timeline Dot Colors */
-.dot-hydrocodone {
+.dot-norco {
     background: var(--accent-red);
 }
 
 .dot-acetaminophen {
-    background: var(--accent-blue);
+    background: var(--accent-orange);
 }
 
 .dot-ibuprofen {
-    background: var(--accent-orange);
+    background: var(--accent-blue);
 }
 
 .dot-amoxicillin {
@@ -529,6 +569,22 @@ h1 {
 
 .dot-chlorhexidine {
     background: var(--accent-teal);
+}
+
+.dot-nicotine {
+    background: var(--accent-gray);
+}
+
+.dot-quetiapine {
+    background: var(--accent-yellow);
+}
+
+.dot-lorazepam {
+    background: var(--accent-indigo);
+}
+
+.dot-adderall {
+    background: var(--accent-cyan);
 }
 
 .dot-default {
@@ -601,19 +657,19 @@ tbody tr:hover {
     white-space: nowrap;
 }
 
-.chip-hydrocodone {
+.chip-norco {
     background: rgba(239, 68, 68, 0.15);
     color: var(--accent-red);
 }
 
 .chip-acetaminophen {
-    background: rgba(59, 130, 246, 0.15);
-    color: var(--accent-blue);
+    background: rgba(249, 115, 22, 0.15);
+    color: var(--accent-orange);
 }
 
 .chip-ibuprofen {
-    background: rgba(249, 115, 22, 0.15);
-    color: var(--accent-orange);
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
 }
 
 .chip-amoxicillin {
@@ -629,6 +685,26 @@ tbody tr:hover {
 .chip-chlorhexidine {
     background: rgba(20, 184, 166, 0.15);
     color: var(--accent-teal);
+}
+
+.chip-nicotine {
+    background: rgba(107, 114, 128, 0.15);
+    color: var(--accent-gray);
+}
+
+.chip-quetiapine {
+    background: rgba(234, 179, 8, 0.15);
+    color: var(--accent-yellow);
+}
+
+.chip-lorazepam {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent-indigo);
+}
+
+.chip-adderall {
+    background: rgba(6, 182, 212, 0.15);
+    color: var(--accent-cyan);
 }
 
 .chip-default {
