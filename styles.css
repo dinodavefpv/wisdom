@@ -4,6 +4,7 @@
     --bg-primary: #f9a8d4;
     --bg-secondary: #fbcfe8;
     --bg-tertiary: #f472b6;
+    --bg-item: #fff0f5; /* Light item background for better readability */
 
     --text-primary: #831843;
     --text-secondary: #9d174d;
@@ -23,6 +24,10 @@
     --border: #f472b6;
 
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hidden {
+    display: none !important;
 }
 
 * {
@@ -84,6 +89,9 @@ h1 {
     align-items: center;
     gap: 0.5rem;
     transition: var(--transition);
+    margin-top: 1rem; /* Added margin for placement below action buttons */
+    width: 100%; /* Full width for better touch target below list */
+    justify-content: center;
 }
 
 .edit-list-btn:hover {
@@ -313,6 +321,7 @@ h1 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+    margin-bottom: 1.5rem; /* Space for edit button below */
 }
 
 .dose-btn {
@@ -660,6 +669,12 @@ tbody tr:hover {
     transition: opacity 0.3s;
 }
 
+/* Ensure color picker modal is above edit modal if nested, or just manages z-index properly.
+   Since edit modal is 2000, we make color picker 2010 */
+#color-picker-modal {
+    z-index: 2010;
+}
+
 .modal.hidden {
     display: none;
     opacity: 0;
@@ -747,64 +762,201 @@ tbody tr:hover {
     margin-bottom: 1.5rem;
 }
 
-.med-edit-row {
+.med-item {
+    background: var(--bg-item);
+    /* Border is now dynamic based on med color, but defaults to border var */
+    border: 2px solid var(--med-item-border, var(--border));
+    border-radius: 12px;
+    overflow: hidden;
+    transition: var(--transition), border-color 0.2s;
+    user-select: none;
+    position: relative;
+}
+
+.med-item.dragging {
+    opacity: 0.8;
+    transform: scale(1.03);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+
+.med-item.over {
+    /* Visual indicator for drop target */
+    border-top: 3px solid var(--accent-pink);
+    border-top-style: dashed;
+}
+
+.med-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: var(--bg-tertiary);
-    padding: 0.5rem;
-    border-radius: 8px;
-    border: 1px solid var(--border);
+    padding: 0.8rem 1rem;
+    gap: 1rem;
+    cursor: pointer;
+    background: var(--bg-item);
+    user-select: none;
 }
 
-.med-edit-order {
+.med-header:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.drag-handle {
+    color: var(--text-secondary);
+    cursor: grab;
+    font-size: 1.2rem;
+    padding: 0.2rem;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
 }
 
-.med-edit-order button {
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.med-emoji {
+    font-size: 1.5rem;
+}
+
+.med-label {
+    flex: 1;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.expand-btn {
     background: transparent;
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 0.6rem;
-    padding: 2px;
-    line-height: 1;
+    transition: transform 0.3s;
+    font-size: 0.8rem;
 }
 
-.med-edit-order button:hover {
+.med-item.expanded .expand-btn {
+    transform: rotate(180deg);
+}
+
+.med-details {
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-top: 1px solid var(--border);
+    display: none;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.med-item.expanded .med-details {
+    display: flex;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.detail-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.detail-color-box {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.med-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.med-edit-input {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
     color: var(--text-primary);
 }
 
-.med-edit-emoji {
-    font-size: 1.5rem;
-    width: 30px;
-    text-align: center;
-}
-
-.med-edit-name {
-    flex: 1;
-    padding: 0.4rem;
-    font-size: 0.9rem;
-}
-
-.med-edit-color {
-    width: 40px;
-    height: 35px;
-    border: none;
-    padding: 0;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.med-edit-color::-webkit-color-swatch-wrapper {
-    padding: 0;
-}
-
-.med-edit-color::-webkit-color-swatch {
+/* Color Picker Trigger Button */
+.color-picker-trigger {
+    width: 100%;
+    height: 48px;
+    border-radius: 8px;
     border: 1px solid var(--border);
-    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.color-picker-trigger:active {
+    transform: scale(0.98);
+}
+
+.med-item-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.med-item-btn {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.med-item-btn.primary {
+    background: var(--accent-pink);
+    color: white;
+    border: none;
+}
+
+.med-item-btn:hover {
+    opacity: 0.9;
+}
+
+/* Color Picker Modal Grid */
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    gap: 12px;
+    padding: 10px;
+}
+
+.color-swatch {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.color-swatch.selected {
+    border-color: var(--text-primary);
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
