@@ -912,14 +912,21 @@ async function loadConfigFromAirtable() {
         if (response.ok) {
             const data = await response.json();
             if (data.records.length > 0) {
-                // Map Airtable records to config format
-                const airtableConfig = data.records.map(record => ({
-                    id: record.fields.ID || record.id, // Fallback to record ID if ID field empty, though we expect 'norco' etc.
-                    airtableId: record.id,
-                    name: record.fields.Name,
-                    emoji: record.fields.Emoji,
-                    color: record.fields.Color
-                }));
+                // Map Airtable records to config format, filtering out invalid ones
+                const airtableConfig = data.records
+                    .filter(record => record.fields.Name && record.fields.Emoji && record.fields.Color)
+                    .map(record => ({
+                        id: record.fields.ID || record.id, // Fallback to record ID if ID field empty, though we expect 'norco' etc.
+                        airtableId: record.id,
+                        name: record.fields.Name,
+                        emoji: record.fields.Emoji,
+                        color: record.fields.Color
+                    }));
+
+                if (airtableConfig.length === 0) {
+                    console.warn("Airtable returned records but none were valid/complete. Keeping local config.");
+                    return;
+                }
 
                 // Merge with local config? Or replace?
                 // User says "sync all of the medicines in airtable", implying Airtable is source of truth.
@@ -930,6 +937,10 @@ async function loadConfigFromAirtable() {
                 renderActionButtons();
                 renderHistory(); // Re-render history to reflect any color/name changes
                 console.log("Loaded medicine config from Airtable");
+            } else {
+                // Airtable is empty, sync LOCAL config to Airtable
+                console.log("Airtable config is empty, syncing local config...");
+                syncConfigToAirtable();
             }
         }
     } catch (err) {
