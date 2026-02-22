@@ -630,26 +630,9 @@ function renderEditList() {
         const details = document.createElement('div');
         details.className = 'med-details';
 
-        // Initial Detail Content (View Mode)
-        const detailsContent = document.createElement('div');
-        detailsContent.className = 'med-view-mode';
-        detailsContent.innerHTML = `
-            <div class="detail-row">
-                <span>Name</span>
-                <span class="detail-value">${med.name}</span>
-            </div>
-            <div class="detail-row">
-                <span>Color</span>
-                <span class="detail-color-box" style="background-color: ${med.color}"></span>
-            </div>
-            <div class="med-item-actions">
-                <button class="med-item-btn" onclick="enableEditMode(this, ${index})">Edit</button>
-            </div>
-        `;
-
-        // Edit Mode Content (Hidden initially)
+        // Edit Mode Content (Visible by default)
         const editContent = document.createElement('div');
-        editContent.className = 'med-edit-form hidden';
+        editContent.className = 'med-edit-form';
         // Content populated when Edit is clicked to preserve state properly if needed,
         // but here we can pre-populate.
         // Replaced native input with button that triggers modal
@@ -670,12 +653,11 @@ function renderEditList() {
                 <input type="hidden" class="med-edit-input color-input" value="${med.color}">
             </div>
             <div class="med-item-actions">
-                <button class="med-item-btn" onclick="cancelEditMode(this)">Cancel</button>
+                <button class="med-item-btn" onclick="collapseItem(this)">Cancel</button>
                 <button class="med-item-btn primary" onclick="saveItemChanges(this, ${index})">Save</button>
             </div>
         `;
 
-        details.appendChild(detailsContent);
         details.appendChild(editContent);
         medItem.appendChild(header);
         medItem.appendChild(details);
@@ -693,16 +675,9 @@ function toggleMedDetails(item, e) {
     item.classList.toggle('expanded');
 }
 
-function enableEditMode(btn, index) {
-    const detailsDiv = btn.closest('.med-details');
-    detailsDiv.querySelector('.med-view-mode').classList.add('hidden');
-    detailsDiv.querySelector('.med-edit-form').classList.remove('hidden');
-}
-
-function cancelEditMode(btn) {
-    const detailsDiv = btn.closest('.med-details');
-    detailsDiv.querySelector('.med-edit-form').classList.add('hidden');
-    detailsDiv.querySelector('.med-view-mode').classList.remove('hidden');
+function collapseItem(btn) {
+    const item = btn.closest('.med-item');
+    item.classList.remove('expanded');
 }
 
 function saveItemChanges(btn, index) {
@@ -720,10 +695,6 @@ function saveItemChanges(btn, index) {
     // Re-render to show updated view
     // We try to keep the expanded state if possible, but full re-render is safer for consistency
     renderEditList();
-
-    // Find the item and expand it again
-    const newItem = medicineListContainer.children[index];
-    if (newItem) newItem.classList.add('expanded');
 }
 
 
