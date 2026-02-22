@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderActionButtons();
     renderHistory();
     loadFromAirtable();
+    loadConfigFromAirtable(); // Load Medicine Config
 });
 
 function renderActionButtons() {
@@ -673,6 +674,16 @@ function renderEditList() {
             medItem.style.setProperty('--med-item-border', val);
         });
 
+        const saveItemBtn = document.createElement('button');
+        saveItemBtn.className = 'med-item-btn primary';
+        saveItemBtn.textContent = 'Save';
+        saveItemBtn.style.marginTop = '1rem';
+        saveItemBtn.onclick = (e) => {
+            // "Save" just collapses the item since changes are live in temp state
+            toggleMedDetails(medItem, e);
+        };
+        editContent.appendChild(saveItemBtn);
+
         details.appendChild(editContent);
         medItem.appendChild(header);
         medItem.appendChild(details);
@@ -856,9 +867,157 @@ async function saveMedicineList() {
         }
     }
 
+    // Sync Config to Airtable
+    syncConfigToAirtable();
+
     renderActionButtons();
     closeEditListModal();
     showToast("Medicine list updated");
+}
+
+function addNewMedicine() {
+    const newMed = {
+        id: Date.now().toString(),
+        name: 'New Medicine',
+        emoji: '💊',
+        color: '#6b7280'
+    };
+    tempMedicineConfig.push(newMed);
+    renderEditList();
+
+    // Scroll to bottom
+    setTimeout(() => {
+        medicineListContainer.scrollTop = medicineListContainer.scrollHeight;
+        // Expand the new item (last one)
+        const lastItem = medicineListContainer.lastElementChild;
+        if (lastItem) lastItem.classList.add('expanded');
+    }, 50);
+}
+
+// ============================================
+// AIRTABLE CONFIG SYNC
+// ============================================
+
+const CONFIG_TABLE_URL = 'https://api.airtable.com/v0/appPOZzZ2SieNO8lf/tblNGXmzXYWmRSx9h';
+const AIRTABLE_HEADERS = {
+    'Authorization': 'Bearer patguU4AQxNO1AQzp.a0a637c47eefb850813cb4e564f5238d0acca68ef1f72b357283ad8dd46236ea',
+    'Content-Type': 'application/json'
+};
+
+async function loadConfigFromAirtable() {
+    try {
+        const response = await fetch(CONFIG_TABLE_URL, {
+            headers: AIRTABLE_HEADERS
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (data.records.length > 0) {
+                // Map Airtable records to config format
+                const airtableConfig = data.records.map(record => ({
+                    id: record.fields.ID || record.id, // Fallback to record ID if ID field empty, though we expect 'norco' etc.
+                    airtableId: record.id,
+                    name: record.fields.Name,
+                    emoji: record.fields.Emoji,
+                    color: record.fields.Color
+                }));
+
+                // Merge with local config? Or replace?
+                // User says "sync all of the medicines in airtable", implying Airtable is source of truth.
+                // However, we want to respect local IDs if possible.
+                // Simplest strategy: Replace local config with Airtable data.
+                medicineConfig = airtableConfig;
+                localStorage.setItem('wisdomMedicineConfig', JSON.stringify(medicineConfig));
+                renderActionButtons();
+                renderHistory(); // Re-render history to reflect any color/name changes
+                console.log("Loaded medicine config from Airtable");
+            }
+        }
+    } catch (err) {
+        console.error("Error loading config from Airtable:", err);
+    }
+}
+
+async function syncConfigToAirtable() {
+    // Determine which records to create vs update
+    const recordsToCreate = [];
+    const recordsToUpdate = [];
+
+    medicineConfig.forEach(med => {
+        if (med.airtableId) {
+            recordsToUpdate.push({
+                id: med.airtableId,
+                fields: {
+                    "Name": med.name,
+                    "Emoji": med.emoji,
+                    "Color": med.color,
+                    "ID": med.id
+                }
+            });
+        } else {
+            recordsToCreate.push({
+                fields: {
+                    "Name": med.name,
+                    "Emoji": med.emoji,
+                    "Color": med.color,
+                    "ID": med.id
+                }
+            });
+        }
+    });
+
+    // Execute Updates
+    if (recordsToUpdate.length > 0) {
+        // Airtable allows max 10 per request
+        for (let i = 0; i < recordsToUpdate.length; i += 10) {
+            const chunk = recordsToUpdate.slice(i, i + 10);
+            try {
+                await fetch(CONFIG_TABLE_URL, {
+                    method: 'PATCH',
+                    headers: AIRTABLE_HEADERS,
+                    body: JSON.stringify({ records: chunk, typecast: true })
+                });
+            } catch (err) {
+                console.error("Error updating config in Airtable:", err);
+            }
+        }
+    }
+
+    // Execute Creates
+    if (recordsToCreate.length > 0) {
+        for (let i = 0; i < recordsToCreate.length; i += 10) {
+            const chunk = recordsToCreate.slice(i, i + 10);
+            try {
+                const response = await fetch(CONFIG_TABLE_URL, {
+                    method: 'POST',
+                    headers: AIRTABLE_HEADERS,
+                    body: JSON.stringify({ records: chunk, typecast: true })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    // Update local config with new airtable IDs
+                    // This is tricky because order might not match exactly if we sent a batch.
+                    // But Airtable returns records in order of creation request for the batch.
+                    // We need to map back to our 'medicineConfig' to save the airtableId.
+
+                    // Simple approach: reload from Airtable to ensure sync.
+                    // Or match by ID field.
+
+                    const createdRecords = data.records;
+                    createdRecords.forEach(record => {
+                        const localMed = medicineConfig.find(m => m.id === record.fields.ID);
+                        if (localMed) {
+                            localMed.airtableId = record.id;
+                        }
+                    });
+                    localStorage.setItem('wisdomMedicineConfig', JSON.stringify(medicineConfig));
+                }
+            } catch (err) {
+                console.error("Error creating config in Airtable:", err);
+            }
+        }
+    }
+
+    console.log("Synced config to Airtable");
 }
 
 async function batchUpdateAirtable(doses) {
