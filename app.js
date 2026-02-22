@@ -695,6 +695,7 @@ function saveItemChanges(btn, index) {
     // Re-render to show updated view
     // We try to keep the expanded state if possible, but full re-render is safer for consistency
     renderEditList();
+    persistMedicineConfiguration();
 }
 
 
@@ -739,6 +740,7 @@ function handleDrop(e) {
         tempMedicineConfig.splice(targetIndex, 0, itemToMove);
 
         renderEditList();
+        persistMedicineConfiguration();
     }
     return false;
 }
@@ -815,7 +817,7 @@ function selectColor(color) {
     closeColorPickerModal();
 }
 
-async function saveMedicineList() {
+async function persistMedicineConfiguration() {
     // Identify renames
     const renames = [];
     tempMedicineConfig.forEach((newMed, i) => {
@@ -860,7 +862,6 @@ async function saveMedicineList() {
     }
 
     renderActionButtons();
-    closeEditListModal();
     showToast("Medicine list updated");
 }
 
