@@ -626,33 +626,13 @@ function renderEditList() {
             <button class="expand-btn">▼</button>
         `;
 
-        // Details View
+        // Details View (Direct Edit Form)
         const details = document.createElement('div');
         details.className = 'med-details';
 
-        // Initial Detail Content (View Mode)
-        const detailsContent = document.createElement('div');
-        detailsContent.className = 'med-view-mode';
-        detailsContent.innerHTML = `
-            <div class="detail-row">
-                <span>Name</span>
-                <span class="detail-value">${med.name}</span>
-            </div>
-            <div class="detail-row">
-                <span>Color</span>
-                <span class="detail-color-box" style="background-color: ${med.color}"></span>
-            </div>
-            <div class="med-item-actions">
-                <button class="med-item-btn" onclick="enableEditMode(this, ${index})">Edit</button>
-            </div>
-        `;
-
-        // Edit Mode Content (Hidden initially)
         const editContent = document.createElement('div');
-        editContent.className = 'med-edit-form hidden';
-        // Content populated when Edit is clicked to preserve state properly if needed,
-        // but here we can pre-populate.
-        // Replaced native input with button that triggers modal
+        editContent.className = 'med-edit-form';
+
         editContent.innerHTML = `
              <div class="form-group">
                 <label>Name</label>
@@ -669,13 +649,30 @@ function renderEditList() {
                 </button>
                 <input type="hidden" class="med-edit-input color-input" value="${med.color}">
             </div>
-            <div class="med-item-actions">
-                <button class="med-item-btn" onclick="cancelEditMode(this)">Cancel</button>
-                <button class="med-item-btn primary" onclick="saveItemChanges(this, ${index})">Save</button>
-            </div>
         `;
 
-        details.appendChild(detailsContent);
+        // Add event listeners for live updates
+        const nameInput = editContent.querySelector('.name-input');
+        nameInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            tempMedicineConfig[index].name = val;
+            header.querySelector('.med-label').textContent = val;
+        });
+
+        const emojiInput = editContent.querySelector('.emoji-input');
+        emojiInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            tempMedicineConfig[index].emoji = val;
+            header.querySelector('.med-emoji').textContent = val;
+        });
+
+        const colorInput = editContent.querySelector('.color-input');
+        colorInput.addEventListener('change', (e) => {
+            const val = e.target.value;
+            tempMedicineConfig[index].color = val;
+            medItem.style.setProperty('--med-item-border', val);
+        });
+
         details.appendChild(editContent);
         medItem.appendChild(header);
         medItem.appendChild(details);
@@ -691,39 +688,6 @@ function toggleMedDetails(item, e) {
 
     // Close others? Optional. Let's keep multiple open support.
     item.classList.toggle('expanded');
-}
-
-function enableEditMode(btn, index) {
-    const detailsDiv = btn.closest('.med-details');
-    detailsDiv.querySelector('.med-view-mode').classList.add('hidden');
-    detailsDiv.querySelector('.med-edit-form').classList.remove('hidden');
-}
-
-function cancelEditMode(btn) {
-    const detailsDiv = btn.closest('.med-details');
-    detailsDiv.querySelector('.med-edit-form').classList.add('hidden');
-    detailsDiv.querySelector('.med-view-mode').classList.remove('hidden');
-}
-
-function saveItemChanges(btn, index) {
-    const detailsDiv = btn.closest('.med-details');
-    const name = detailsDiv.querySelector('.name-input').value;
-    const emoji = detailsDiv.querySelector('.emoji-input').value;
-    const color = detailsDiv.querySelector('.color-input').value; // Get from hidden input
-
-    if (!name) return;
-
-    tempMedicineConfig[index].name = name;
-    tempMedicineConfig[index].emoji = emoji;
-    tempMedicineConfig[index].color = color;
-
-    // Re-render to show updated view
-    // We try to keep the expanded state if possible, but full re-render is safer for consistency
-    renderEditList();
-
-    // Find the item and expand it again
-    const newItem = medicineListContainer.children[index];
-    if (newItem) newItem.classList.add('expanded');
 }
 
 
@@ -839,7 +803,11 @@ function selectColor(color) {
 
     // Update hidden input
     const container = activeColorTriggerBtn.parentElement;
-    container.querySelector('.color-input').value = color;
+    const colorInput = container.querySelector('.color-input');
+    colorInput.value = color;
+
+    // Trigger change event manually so listeners pick it up
+    colorInput.dispatchEvent(new Event('change', { bubbles: true }));
 
     closeColorPickerModal();
 }
