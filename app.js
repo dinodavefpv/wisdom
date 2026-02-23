@@ -754,6 +754,30 @@ function handleDrop(e) {
     return false;
 }
 
+function addNewMedicine() {
+    // Generate a temporary ID or let Airtable assign one (for now we use a temp string until sync)
+    const newMed = {
+        id: 'new-' + Date.now(),
+        name: 'New Medicine',
+        emoji: '💊',
+        color: '#3b82f6' // Default blue
+    };
+
+    tempMedicineConfig.push(newMed);
+    renderEditList();
+    persistMedicineConfiguration();
+
+    // Auto-expand the new item to prompt editing
+    setTimeout(() => {
+        const items = medicineListContainer.querySelectorAll('.med-item');
+        const newItemIndex = tempMedicineConfig.length - 1;
+        if (items[newItemIndex]) {
+            items[newItemIndex].classList.add('expanded');
+            items[newItemIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 50);
+}
+
 function handleDragEnd(e) {
     this.style.opacity = '1';
     this.classList.remove('dragging');
