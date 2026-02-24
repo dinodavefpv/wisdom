@@ -54,7 +54,7 @@ function renderActionButtons() {
     if (!actionButtonsContainer) return;
     actionButtonsContainer.innerHTML = '';
 
-    medicineConfig.forEach(med => {
+    medicineConfig.filter(med => med.visibility !== false).forEach(med => {
         const btn = document.createElement('button');
         btn.className = 'dose-btn';
         btn.style.setProperty('--med-color', med.color);
@@ -608,7 +608,8 @@ function renderEditList() {
 
     tempMedicineConfig.forEach((med, index) => {
         const medItem = document.createElement('div');
-        medItem.className = 'med-item';
+        const hiddenClass = med.visibility === false ? ' hidden-med' : '';
+        medItem.className = `med-item${hiddenClass}`;
         medItem.draggable = true;
         medItem.dataset.index = index;
 
@@ -628,10 +629,15 @@ function renderEditList() {
         header.className = 'med-header';
         header.onclick = (e) => toggleMedDetails(medItem, e);
 
+        const visibilityIcon = med.visibility !== false ? 'assets/icons/visibility.png' : 'assets/icons/visibility_off.png';
+
         header.innerHTML = `
             <div class="drag-handle">☰</div>
             <div class="med-emoji">${med.emoji}</div>
             <div class="med-label">${med.name}</div>
+            <button class="visibility-toggle" onclick="toggleMedVisibility(event, ${index})">
+                <img src="${visibilityIcon}" alt="Visibility">
+            </button>
             <button class="expand-btn">▼</button>
         `;
 
@@ -675,10 +681,19 @@ function renderEditList() {
     });
 }
 
+function toggleMedVisibility(e, index) {
+    e.stopPropagation();
+    const med = tempMedicineConfig[index];
+    med.visibility = med.visibility === false ? true : false;
+    renderEditList();
+    persistMedicineConfiguration();
+}
+
 function toggleMedDetails(item, e) {
     // Prevent toggling if clicking buttons inside header if any (though currently only expand btn)
     // or if dragging.
     if (e.target.closest('.drag-handle')) return;
+    if (e.target.closest('.visibility-toggle')) return;
 
     // Close others? Optional. Let's keep multiple open support.
     item.classList.toggle('expanded');
@@ -760,7 +775,8 @@ function addNewMedicine() {
         id: 'new-' + Date.now(),
         name: 'New Medicine',
         emoji: '💊',
-        color: '#3b82f6' // Default blue
+        color: '#3b82f6', // Default blue
+        visibility: true
     };
 
     tempMedicineConfig.push(newMed);
@@ -964,7 +980,8 @@ async function loadMedicineConfigFromAirtable() {
                 id: record.id, // Use Airtable ID as stable ID
                 name: record.fields['Medicine Name'],
                 emoji: record.fields['Emoji'],
-                color: record.fields['Color']
+                color: record.fields['Color'],
+                visibility: record.fields['Visibility'] !== false
             }));
 
             localStorage.setItem('wisdomMedicineConfig', JSON.stringify(medicineConfig));
@@ -989,7 +1006,8 @@ async function initialSyncMedicineConfigToAirtable() {
             "Medicine Name": med.name,
             "Emoji": med.emoji,
             "Color": med.color,
-            "Load Order": index
+            "Load Order": index,
+            "Visibility": med.visibility !== false
         }
     }));
 
@@ -1045,7 +1063,8 @@ async function syncMedicineConfigToAirtable() {
             "Medicine Name": med.name,
             "Emoji": med.emoji,
             "Color": med.color,
-            "Load Order": index
+            "Load Order": index,
+            "Visibility": med.visibility !== false
         };
 
         if (med.id && med.id.startsWith('rec')) {

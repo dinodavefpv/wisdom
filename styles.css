@@ -999,3 +999,29 @@ tbody tr:hover {
     width: 18px;
     height: 18px;
 }
+
+/* Visibility Toggle */
+.med-item.hidden-med {
+    opacity: 0.69;
+}
+
+.visibility-toggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.visibility-toggle img {
+    width: 24px;
+    height: 24px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.visibility-toggle:hover img {
+    opacity: 1;
+}
