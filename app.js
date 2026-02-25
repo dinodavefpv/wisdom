@@ -629,14 +629,14 @@ function renderEditList() {
         header.className = 'med-header';
         header.onclick = (e) => toggleMedDetails(medItem, e);
 
-        const visibilityIcon = med.visibility !== false ? 'assets/icons/visibility.png' : 'assets/icons/visibility_off.png';
+        const visibilityClass = med.visibility !== false ? 'icon-visibility' : 'icon-visibility-off';
 
         header.innerHTML = `
             <div class="drag-handle">☰</div>
             <div class="med-emoji">${med.emoji}</div>
             <div class="med-label">${med.name}</div>
-            <button class="visibility-toggle" onclick="toggleMedVisibility(event, ${index})">
-                <img src="${visibilityIcon}" alt="Visibility">
+            <button type="button" class="visibility-toggle" onclick="toggleMedVisibility(event, ${index})">
+                <div class="icon-mask ${visibilityClass}"></div>
             </button>
             <button class="expand-btn">▼</button>
         `;
@@ -981,7 +981,7 @@ async function loadMedicineConfigFromAirtable() {
                 name: record.fields['Medicine Name'],
                 emoji: record.fields['Emoji'],
                 color: record.fields['Color'],
-                visibility: record.fields['Visibility'] !== false
+                visibility: !!record.fields['Visibility']
             }));
 
             localStorage.setItem('wisdomMedicineConfig', JSON.stringify(medicineConfig));

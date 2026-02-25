@@ -1013,15 +1013,33 @@ tbody tr:hover {
     margin-right: 0.5rem;
     display: flex;
     align-items: center;
-}
-
-.visibility-toggle img {
-    width: 24px;
-    height: 24px;
+    color: var(--text-primary);
     opacity: 0.6;
     transition: opacity 0.2s;
 }
 
-.visibility-toggle:hover img {
+.visibility-toggle:hover {
     opacity: 1;
+}
+
+.icon-mask {
+    width: 24px;
+    height: 24px;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.icon-visibility {
+    -webkit-mask-image: url('assets/icons/visibility.png');
+    mask-image: url('assets/icons/visibility.png');
+}
+
+.icon-visibility-off {
+    -webkit-mask-image: url('assets/icons/visibility_off.png');
+    mask-image: url('assets/icons/visibility_off.png');
 }
