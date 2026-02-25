@@ -819,7 +819,8 @@ const defaultColors = [
     '#ef4444', '#f97316', '#3b82f6', '#22c55e',
     '#a855f7', '#14b8a6', '#6b7280', '#eab308',
     '#6366f1', '#ec4899', '#06b6d4', '#8b5cf6',
-    '#f43f5e', '#d946ef', '#84cc16', '#10b981'
+    '#f43f5e', '#d946ef', '#84cc16', '#10b981',
+    '#5b21b6', '#9d174d', '#155e75'
 ];
 
 function openColorPickerModal(triggerBtn) {
