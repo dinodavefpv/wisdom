@@ -54,7 +54,7 @@ function renderActionButtons() {
     if (!actionButtonsContainer) return;
     actionButtonsContainer.innerHTML = '';
 
-    medicineConfig.forEach(med => {
+    medicineConfig.filter(med => med.visibility !== false).forEach(med => {
         const btn = document.createElement('button');
         btn.className = 'dose-btn';
         btn.style.setProperty('--med-color', med.color);
@@ -608,7 +608,8 @@ function renderEditList() {
 
     tempMedicineConfig.forEach((med, index) => {
         const medItem = document.createElement('div');
-        medItem.className = 'med-item';
+        const hiddenClass = med.visibility === false ? ' hidden-med' : '';
+        medItem.className = `med-item${hiddenClass}`;
         medItem.draggable = true;
         medItem.dataset.index = index;
 
@@ -628,10 +629,15 @@ function renderEditList() {
         header.className = 'med-header';
         header.onclick = (e) => toggleMedDetails(medItem, e);
 
+        const visibilityClass = med.visibility !== false ? 'icon-visibility' : 'icon-visibility-off';
+
         header.innerHTML = `
             <div class="drag-handle">☰</div>
             <div class="med-emoji">${med.emoji}</div>
             <div class="med-label">${med.name}</div>
+            <button type="button" class="visibility-toggle" onclick="toggleMedVisibility(event, ${index})">
+                <div class="icon-mask ${visibilityClass}"></div>
+            </button>
             <button class="expand-btn">▼</button>
         `;
 
@@ -675,10 +681,19 @@ function renderEditList() {
     });
 }
 
+function toggleMedVisibility(e, index) {
+    e.stopPropagation();
+    const med = tempMedicineConfig[index];
+    med.visibility = med.visibility === false ? true : false;
+    renderEditList();
+    persistMedicineConfiguration();
+}
+
 function toggleMedDetails(item, e) {
     // Prevent toggling if clicking buttons inside header if any (though currently only expand btn)
     // or if dragging.
     if (e.target.closest('.drag-handle')) return;
+    if (e.target.closest('.visibility-toggle')) return;
 
     // Close others? Optional. Let's keep multiple open support.
     item.classList.toggle('expanded');
@@ -695,7 +710,11 @@ function saveItemChanges(btn, index) {
     const emoji = detailsDiv.querySelector('.emoji-input').value;
     const color = detailsDiv.querySelector('.color-input').value; // Get from hidden input
 
-    if (!name) return;
+    if (!name.trim()) {
+        showToast("Please enter a medicine name");
+        detailsDiv.querySelector('.name-input').style.borderColor = 'var(--accent-red)';
+        return;
+    }
 
     tempMedicineConfig[index].name = name;
     tempMedicineConfig[index].emoji = emoji;
@@ -758,9 +777,10 @@ function addNewMedicine() {
     // Generate a temporary ID or let Airtable assign one (for now we use a temp string until sync)
     const newMed = {
         id: 'new-' + Date.now(),
-        name: 'New Medicine',
+        name: '',
         emoji: '💊',
-        color: '#3b82f6' // Default blue
+        color: '#3b82f6', // Default blue
+        visibility: true
     };
 
     tempMedicineConfig.push(newMed);
@@ -799,7 +819,8 @@ const defaultColors = [
     '#ef4444', '#f97316', '#3b82f6', '#22c55e',
     '#a855f7', '#14b8a6', '#6b7280', '#eab308',
     '#6366f1', '#ec4899', '#06b6d4', '#8b5cf6',
-    '#f43f5e', '#d946ef', '#84cc16', '#10b981'
+    '#f43f5e', '#d946ef', '#84cc16', '#10b981',
+    '#5b21b6', '#9d174d', '#155e75'
 ];
 
 function openColorPickerModal(triggerBtn) {
@@ -964,7 +985,8 @@ async function loadMedicineConfigFromAirtable() {
                 id: record.id, // Use Airtable ID as stable ID
                 name: record.fields['Medicine Name'],
                 emoji: record.fields['Emoji'],
-                color: record.fields['Color']
+                color: record.fields['Color'],
+                visibility: !!record.fields['Visibility']
             }));
 
             localStorage.setItem('wisdomMedicineConfig', JSON.stringify(medicineConfig));
@@ -989,7 +1011,8 @@ async function initialSyncMedicineConfigToAirtable() {
             "Medicine Name": med.name,
             "Emoji": med.emoji,
             "Color": med.color,
-            "Load Order": index
+            "Load Order": index,
+            "Visibility": med.visibility !== false
         }
     }));
 
@@ -1045,7 +1068,8 @@ async function syncMedicineConfigToAirtable() {
             "Medicine Name": med.name,
             "Emoji": med.emoji,
             "Color": med.color,
-            "Load Order": index
+            "Load Order": index,
+            "Visibility": med.visibility !== false
         };
 
         if (med.id && med.id.startsWith('rec')) {
