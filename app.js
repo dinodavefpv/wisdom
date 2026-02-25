@@ -710,7 +710,11 @@ function saveItemChanges(btn, index) {
     const emoji = detailsDiv.querySelector('.emoji-input').value;
     const color = detailsDiv.querySelector('.color-input').value; // Get from hidden input
 
-    if (!name) return;
+    if (!name.trim()) {
+        showToast("Please enter a medicine name");
+        detailsDiv.querySelector('.name-input').style.borderColor = 'var(--accent-red)';
+        return;
+    }
 
     tempMedicineConfig[index].name = name;
     tempMedicineConfig[index].emoji = emoji;
@@ -773,7 +777,7 @@ function addNewMedicine() {
     // Generate a temporary ID or let Airtable assign one (for now we use a temp string until sync)
     const newMed = {
         id: 'new-' + Date.now(),
-        name: 'New Medicine',
+        name: '',
         emoji: '💊',
         color: '#3b82f6', // Default blue
         visibility: true
