@@ -785,7 +785,6 @@ function addNewMedicine() {
 
     tempMedicineConfig.push(newMed);
     renderEditList();
-    persistMedicineConfiguration();
 
     // Auto-expand the new item to prompt editing
     setTimeout(() => {
@@ -885,7 +884,7 @@ async function persistMedicineConfiguration() {
     });
 
     // Update config
-    medicineConfig = JSON.parse(JSON.stringify(tempMedicineConfig));
+    medicineConfig = JSON.parse(JSON.stringify(tempMedicineConfig)).filter(m => m.name && m.name.trim().length > 0);
     localStorage.setItem('wisdomMedicineConfig', JSON.stringify(medicineConfig));
 
     // Process renames in history
@@ -981,13 +980,15 @@ async function loadMedicineConfigFromAirtable() {
             }
 
             // Otherwise, load from Airtable
-            medicineConfig = data.records.map(record => ({
-                id: record.id, // Use Airtable ID as stable ID
-                name: record.fields['Medicine Name'],
-                emoji: record.fields['Emoji'],
-                color: record.fields['Color'],
-                visibility: !!record.fields['Visibility']
-            }));
+            medicineConfig = data.records
+                .filter(record => record.fields['Medicine Name'] && record.fields['Medicine Name'].trim().length > 0)
+                .map(record => ({
+                    id: record.id, // Use Airtable ID as stable ID
+                    name: record.fields['Medicine Name'],
+                    emoji: record.fields['Emoji'],
+                    color: record.fields['Color'],
+                    visibility: !!record.fields['Visibility']
+                }));
 
             localStorage.setItem('wisdomMedicineConfig', JSON.stringify(medicineConfig));
             renderActionButtons();
