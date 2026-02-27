@@ -235,16 +235,16 @@ function renderHistory() {
         const tdNotes = document.createElement('td');
         tdNotes.className = 'notes-col';
 
-        if (dose.notes && dose.notes.trim().length > 0) {
-            const notesBtn = document.createElement('button');
-            notesBtn.className = 'notes-icon-btn';
-            notesBtn.innerHTML = '<i data-feather="message-square"></i>';
-            notesBtn.onclick = (e) => {
-                e.stopPropagation();
-                toggleNotesPopup(dose.id, notesBtn);
-            };
-            tdNotes.appendChild(notesBtn);
-        }
+        const notesBtn = document.createElement('button');
+        const hasNotes = dose.notes && dose.notes.trim().length > 0;
+
+        notesBtn.className = `notes-icon-btn ${hasNotes ? '' : 'empty-note'}`;
+        notesBtn.innerHTML = '<i data-feather="message-square"></i>';
+        notesBtn.onclick = (e) => {
+            e.stopPropagation();
+            openNotesModal(dose.id);
+        };
+        tdNotes.appendChild(notesBtn);
 
         tr.appendChild(tdDate);
         tr.appendChild(tdTime);
@@ -261,63 +261,46 @@ function renderHistory() {
     }
 }
 
-// Notes Popup Logic
-let activeNotesPopup = null;
+// Notes Modal Logic
+let activeNotesModal = null;
 
-function toggleNotesPopup(doseId, btnElement) {
-    // If clicking same button, close it
-    if (activeNotesPopup && activeNotesPopup.doseId === doseId) {
-        closeNotesPopup();
-        return;
-    }
-
-    closeNotesPopup(); // Close any existing
-
+function openNotesModal(doseId) {
     const dose = doseHistory.find(d => d.id === doseId);
     if (!dose) return;
 
-    // Create popup container
-    const popup = document.createElement('div');
-    popup.className = 'notes-popup-container';
-    popup.onclick = (e) => e.stopPropagation(); // Prevent row click
+    // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
+
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'notes-modal-overlay';
+
+    // Close on overlay click
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            closeNotesModal();
+        }
+    };
+
+    const content = document.createElement('div');
+    content.className = 'notes-modal-content';
+    content.onclick = (e) => e.stopPropagation();
 
     const textarea = document.createElement('textarea');
-    textarea.className = 'notes-popup-textarea';
-    textarea.value = dose.notes;
+    textarea.className = 'notes-modal-textarea';
+    textarea.placeholder = "Add a note...";
+    textarea.value = dose.notes || '';
 
-    // Auto-expand on focus/input
-    const autoResize = () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
-    };
-
-    textarea.addEventListener('input', () => {
-        autoResize();
-        actionsDiv.classList.remove('hidden'); // Show actions on edit
-    });
-
-    textarea.addEventListener('focus', () => {
-        textarea.classList.add('expanded');
-        autoResize();
-    });
-
-    // Actions (Save/Cancel)
     const actionsDiv = document.createElement('div');
-    actionsDiv.className = 'notes-popup-actions hidden';
+    actionsDiv.className = 'notes-modal-actions';
 
     const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'notes-popup-btn cancel';
+    cancelBtn.className = 'notes-modal-btn cancel';
     cancelBtn.innerHTML = '<i data-feather="x"></i>';
-    cancelBtn.onclick = () => {
-        textarea.value = dose.notes;
-        textarea.classList.remove('expanded');
-        textarea.style.height = '';
-        actionsDiv.classList.add('hidden');
-        closeNotesPopup();
-    };
+    cancelBtn.onclick = () => closeNotesModal();
 
     const saveBtn = document.createElement('button');
-    saveBtn.className = 'notes-popup-btn save';
+    saveBtn.className = 'notes-modal-btn save';
     saveBtn.innerHTML = '<i data-feather="check"></i>';
     saveBtn.onclick = () => {
         const newNotes = textarea.value;
@@ -331,44 +314,46 @@ function toggleNotesPopup(doseId, btnElement) {
             }
             showToast("Note updated");
         }
-        closeNotesPopup();
-        renderHistory(); // Re-render to update icon state if needed
+        closeNotesModal();
+        renderHistory(); // Re-render to update icon state
     };
 
-    actionsDiv.appendChild(cancelBtn);
+    actionsDiv.appendChild(saveBtn); // Check first (to the left in flex-end, but we want X right of check?)
+    // User requested: "put the x next to the checkmark on the bottom right"
+    // Usually Cancel is left of Save.
+    // If we use flex-end (right aligned), appending Save then Cancel makes Cancel rightmost.
+    // "put the x next to the checkmark on the bottom right" -> Checkmark | X
+    // So Append Checkmark, then Append X.
+
+    // Wait, typically save is the primary action (rightmost or distinct).
+    // "x next to the checkmark on the bottom right".
+    // Let's assume standard order: [Save] [Cancel] if right aligned? Or [Cancel] [Save]?
+    // Let's try:  [Save (Check)] [Cancel (X)]
+
+    actionsDiv.innerHTML = '';
     actionsDiv.appendChild(saveBtn);
+    actionsDiv.appendChild(cancelBtn);
 
-    popup.appendChild(textarea);
-    popup.appendChild(actionsDiv);
+    content.appendChild(textarea);
+    content.appendChild(actionsDiv);
+    overlay.appendChild(content);
 
-    // Position relative to the button
-    // We'll append to body or a fixed container to avoid overflow issues,
-    // but for simplicity in this structure, let's append to the cell and position absolute
-    const parentCell = btnElement.parentElement;
-    parentCell.style.position = 'relative';
-    parentCell.appendChild(popup);
-
-    activeNotesPopup = { doseId, element: popup };
+    document.body.appendChild(overlay);
+    activeNotesModal = overlay;
 
     if (typeof feather !== 'undefined') feather.replace();
 
-    // Initial resize if needed
-    autoResize();
+    // Focus textarea
+    setTimeout(() => textarea.focus(), 50);
 }
 
-function closeNotesPopup() {
-    if (activeNotesPopup && activeNotesPopup.element) {
-        activeNotesPopup.element.remove();
-        activeNotesPopup = null;
+function closeNotesModal() {
+    if (activeNotesModal) {
+        activeNotesModal.remove();
+        activeNotesModal = null;
+        document.body.style.overflow = ''; // Restore scrolling
     }
 }
-
-// Close popup when clicking outside
-document.addEventListener('click', (e) => {
-    if (activeNotesPopup && !e.target.closest('.notes-popup-container') && !e.target.closest('.notes-icon-btn')) {
-        closeNotesPopup();
-    }
-});
 
 // Render Timeline View
 function renderTimeline() {

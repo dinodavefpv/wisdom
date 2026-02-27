@@ -599,9 +599,14 @@ tbody tr:hover {
     justify-content: center;
 }
 
+.notes-icon-btn.empty-note {
+    opacity: 0.3;
+}
+
 .notes-icon-btn:hover {
     color: var(--accent-blue);
     background: rgba(59, 130, 246, 0.1);
+    opacity: 1; /* Full opacity on hover */
 }
 
 .notes-icon-btn i {
@@ -609,91 +614,113 @@ tbody tr:hover {
     height: 18px;
 }
 
-/* Notes Popup */
-.notes-popup-container {
-    position: absolute;
-    bottom: 100%;
-    right: 0;
-    width: 220px;
+/* Notes Modal (Overlay) */
+.notes-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    backdrop-filter: blur(2px);
+}
+
+.notes-modal-content {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 0.8rem;
-    z-index: 1000; /* Increased z-index */
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    padding: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 5px; /* Spacing from button */
+    gap: 0.8rem;
+    position: relative;
 }
 
-/* Ensure popup stays within viewport on mobile */
-@media (max-width: 480px) {
-    .notes-popup-container {
-        width: 180px;
-        right: -10px; /* Slight offset */
-    }
-}
-
-.notes-popup-textarea {
+.notes-modal-textarea {
     width: 100%;
     background: var(--bg-tertiary);
-    border: 1px solid transparent;
-    border-radius: 4px;
-    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem;
     color: var(--text-primary);
-    font-size: 0.9rem;
+    font-size: 1rem;
     resize: none;
-    min-height: 40px;
+    min-height: 100px; /* Generous height for editing */
     font-family: inherit;
-    transition: all 0.2s;
 }
 
-.notes-popup-textarea.expanded {
-    min-height: 80px;
-    border-color: var(--border);
+.notes-modal-textarea:focus {
     background: var(--bg-item);
+    outline: 2px solid var(--accent-pink);
+    border-color: transparent;
 }
 
-.notes-popup-actions {
+/* View Mode Text */
+.notes-modal-view {
+    padding: 0.8rem;
+    color: var(--text-primary);
+    font-size: 1rem;
+    min-height: 60px;
+    white-space: pre-wrap;
+    cursor: pointer; /* Click to edit */
+    border: 1px dashed transparent;
+    border-radius: 8px;
+}
+
+.notes-modal-view:hover {
+    background: rgba(0,0,0,0.05);
+    border-color: var(--border);
+}
+
+.notes-modal-actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end; /* Align to right */
+    gap: 1rem;
+    margin-top: 0.5rem;
 }
 
-.notes-popup-actions.hidden {
-    display: none;
-}
-
-.notes-popup-btn {
+.notes-modal-btn {
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
+    padding: 0.5rem;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s;
+    width: 40px;
+    height: 40px;
 }
 
-.notes-popup-btn.cancel {
+.notes-modal-btn.cancel {
     color: var(--text-secondary);
+    background: rgba(239, 68, 68, 0.1);
 }
-.notes-popup-btn.cancel:hover {
-    background: rgba(0,0,0,0.05);
+.notes-modal-btn.cancel:hover {
+    background: rgba(239, 68, 68, 0.2);
     color: var(--accent-red);
 }
 
-.notes-popup-btn.save {
+.notes-modal-btn.save {
     color: var(--accent-green);
-}
-.notes-popup-btn.save:hover {
     background: rgba(34, 197, 94, 0.1);
 }
+.notes-modal-btn.save:hover {
+    background: rgba(34, 197, 94, 0.2);
+}
 
-.notes-popup-btn i {
-    width: 16px;
-    height: 16px;
+.notes-modal-btn i {
+    width: 20px;
+    height: 20px;
 }
 
 /* Empty State */
