@@ -623,7 +623,6 @@ tbody tr:hover {
     height: 100%;
     background: transparent; /* Default transparent */
     z-index: 2000;
-    /* Default flex layout for Edit Mode (centered) */
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -649,24 +648,6 @@ tbody tr:hover {
     gap: 0.8rem;
     position: relative;
     transition: all 0.3s ease;
-}
-
-/* View Mode specific styling */
-.notes-modal-overlay:not(.editing) {
-    /* In View Mode, overlay passes events but content captures them */
-    pointer-events: none;
-    display: block; /* Remove flex centering */
-    padding: 0;
-}
-
-.notes-modal-overlay:not(.editing) .notes-modal-content {
-    pointer-events: auto;
-    position: absolute; /* Positioned via JS */
-    /* Add specific drop shadow for view mode */
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    width: 320px; /* Fixed width for view popup */
-    /* Ensure it doesn't overflow screen width */
-    max-width: 95vw;
 }
 
 .notes-modal-textarea {
