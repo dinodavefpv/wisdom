@@ -295,6 +295,7 @@ function openNotesModal(doseId) {
     textarea.placeholder = "Add a note...";
     textarea.value = dose.notes || '';
     if (!isEditing) textarea.classList.add('hidden');
+    else overlay.classList.add('editing'); // Initially editing
 
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'notes-modal-actions';
@@ -357,12 +358,14 @@ function openNotesModal(doseId) {
 
     function updateModalView() {
         if (isEditing) {
+            overlay.classList.add('editing');
             viewDiv.classList.add('hidden');
             hintDiv.classList.add('hidden');
             textarea.classList.remove('hidden');
             actionsDiv.classList.remove('hidden');
             textarea.focus();
         } else {
+            overlay.classList.remove('editing');
             textarea.value = dose.notes; // Reset changes
             viewDiv.textContent = dose.notes;
             textarea.classList.add('hidden');
