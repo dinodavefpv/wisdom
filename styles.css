@@ -614,16 +614,25 @@ tbody tr:hover {
     position: absolute;
     bottom: 100%;
     right: 0;
-    width: 200px;
+    width: 220px;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 0.5rem;
-    z-index: 100;
+    padding: 0.8rem;
+    z-index: 1000; /* Increased z-index */
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin-bottom: 5px; /* Spacing from button */
+}
+
+/* Ensure popup stays within viewport on mobile */
+@media (max-width: 480px) {
+    .notes-popup-container {
+        width: 180px;
+        right: -10px; /* Slight offset */
+    }
 }
 
 .notes-popup-textarea {
