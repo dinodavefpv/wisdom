@@ -530,6 +530,7 @@ tr:last-child td {
 
 tr {
     transition: background-color 0.2s;
+    -webkit-tap-highlight-color: transparent;
 }
 
 tbody tr:hover {
@@ -597,6 +598,7 @@ tbody tr:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .notes-icon-btn.empty-note {
@@ -646,6 +648,7 @@ tbody tr:hover {
     gap: 0.8rem;
     position: relative;
     transition: all 0.3s ease;
+    min-height: 180px; /* Ensure minimum height to avoid layout shift */
 }
 
 .notes-modal-textarea {
@@ -657,7 +660,7 @@ tbody tr:hover {
     color: var(--text-primary);
     font-size: 1rem;
     resize: none;
-    min-height: 100px; /* Generous height for editing */
+    height: 120px; /* Fixed height to match view area approximately */
     font-family: inherit;
 }
 

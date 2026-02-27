@@ -369,17 +369,27 @@ function openNotesModal(doseId) {
     function updateModalView() {
         if (isEditing) {
             overlay.classList.add('editing');
+
+            // Hide view elements
             viewDiv.classList.add('hidden');
             hintDiv.classList.add('hidden');
+
+            // Show edit elements
             textarea.classList.remove('hidden');
             actionsDiv.classList.remove('hidden');
+
+            // Focus textarea
             textarea.focus();
         } else {
             overlay.classList.remove('editing');
             textarea.value = dose.notes; // Reset changes
             viewDiv.textContent = dose.notes;
+
+            // Hide edit elements
             textarea.classList.add('hidden');
             actionsDiv.classList.add('hidden');
+
+            // Show view elements
             viewDiv.classList.remove('hidden');
             hintDiv.classList.remove('hidden');
         }
@@ -756,13 +766,29 @@ function closeEditModal() {
     editModal.classList.add('hidden');
 }
 
-function deleteEditingDose() {
+// ============================================
+// CONFIRM DELETE MODAL LOGIC
+// ============================================
+const confirmDeleteModal = document.getElementById('confirm-delete-modal');
+
+function openConfirmDeleteModal() {
+    confirmDeleteModal.classList.remove('hidden');
+}
+
+function closeConfirmDeleteModal() {
+    confirmDeleteModal.classList.add('hidden');
+}
+
+function confirmDeleteDose() {
     const id = editIdInput.value;
-    if (confirm("Are you sure you want to delete this dose?")) {
-        deleteDose(id);
-        closeEditModal();
-        showToast("Dose deleted");
-    }
+    deleteDose(id);
+    closeConfirmDeleteModal();
+    closeEditModal();
+    showToast("Dose deleted");
+}
+
+function deleteEditingDose() {
+    openConfirmDeleteModal();
 }
 
 function saveEditDose() {

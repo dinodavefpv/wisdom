@@ -132,6 +132,18 @@
         </div>
     </div>
 
+    <!-- Confirm Delete Modal -->
+    <div id="confirm-delete-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Delete Dose?</h3>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1rem;">Are you sure you want to delete this dose record?</p>
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeConfirmDeleteModal()">Cancel</button>
+                <button class="save-btn" onclick="confirmDeleteDose()" style="background-color: var(--accent-red); box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Time Picker Modal (reusing structure similar to past-time but in a modal) -->
     <div id="edit-time-modal" class="modal hidden">
         <div class="modal-content">
