@@ -625,8 +625,9 @@ tbody tr:hover {
     z-index: 2000;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Move higher up */
     padding: 1rem;
+    padding-top: 20vh; /* Start 20% down from top */
     backdrop-filter: blur(2px);
 }
 
@@ -668,16 +669,25 @@ tbody tr:hover {
     padding: 0.8rem;
     color: var(--text-primary);
     font-size: 1rem;
-    min-height: 60px;
+    min-height: 80px;
     white-space: pre-wrap;
     cursor: pointer; /* Click to edit */
-    border: 1px dashed transparent;
+    border: 1px dashed transparent; /* Hint that it's clickable */
     border-radius: 8px;
+    background: var(--bg-tertiary); /* Distinct background */
 }
 
 .notes-modal-view:hover {
-    background: rgba(0,0,0,0.05);
+    background: var(--bg-item);
     border-color: var(--border);
+}
+
+.notes-modal-view-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-align: right;
+    margin-top: -0.5rem;
+    opacity: 0.7;
 }
 
 .notes-modal-actions {
@@ -685,6 +695,10 @@ tbody tr:hover {
     justify-content: flex-end; /* Align to right */
     gap: 1rem;
     margin-top: 0.5rem;
+}
+
+.notes-modal-actions.hidden {
+    display: none;
 }
 
 .notes-modal-btn {

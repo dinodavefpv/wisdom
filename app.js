@@ -286,18 +286,34 @@ function openNotesModal(doseId) {
     content.className = 'notes-modal-content';
     content.onclick = (e) => e.stopPropagation();
 
+    // Determine initial mode
+    let isEditing = !dose.notes || dose.notes.trim().length === 0;
+
+    // -- Edit Mode Components --
     const textarea = document.createElement('textarea');
     textarea.className = 'notes-modal-textarea';
     textarea.placeholder = "Add a note...";
     textarea.value = dose.notes || '';
+    if (!isEditing) textarea.classList.add('hidden');
 
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'notes-modal-actions';
+    if (!isEditing) actionsDiv.classList.add('hidden');
 
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'notes-modal-btn cancel';
     cancelBtn.innerHTML = '<i data-feather="x"></i>';
-    cancelBtn.onclick = () => closeNotesModal();
+    // If editing a new note (was empty), cancel closes modal.
+    // If editing existing note, cancel reverts to view mode.
+    cancelBtn.onclick = () => {
+        if (!dose.notes || dose.notes.trim().length === 0) {
+            closeNotesModal();
+        } else {
+            // Revert to view mode
+            isEditing = false;
+            updateModalView();
+        }
+    };
 
     const saveBtn = document.createElement('button');
     saveBtn.className = 'notes-modal-btn save';
@@ -315,25 +331,49 @@ function openNotesModal(doseId) {
             showToast("Note updated");
         }
         closeNotesModal();
-        renderHistory(); // Re-render to update icon state
+        renderHistory();
     };
 
-    actionsDiv.appendChild(saveBtn); // Check first (to the left in flex-end, but we want X right of check?)
-    // User requested: "put the x next to the checkmark on the bottom right"
-    // Usually Cancel is left of Save.
-    // If we use flex-end (right aligned), appending Save then Cancel makes Cancel rightmost.
-    // "put the x next to the checkmark on the bottom right" -> Checkmark | X
-    // So Append Checkmark, then Append X.
-
-    // Wait, typically save is the primary action (rightmost or distinct).
-    // "x next to the checkmark on the bottom right".
-    // Let's assume standard order: [Save] [Cancel] if right aligned? Or [Cancel] [Save]?
-    // Let's try:  [Save (Check)] [Cancel (X)]
-
-    actionsDiv.innerHTML = '';
     actionsDiv.appendChild(saveBtn);
     actionsDiv.appendChild(cancelBtn);
 
+    // -- View Mode Components --
+    const viewDiv = document.createElement('div');
+    viewDiv.className = 'notes-modal-view';
+    viewDiv.textContent = dose.notes;
+    if (isEditing) viewDiv.classList.add('hidden');
+
+    // Add hint text in view mode
+    const hintDiv = document.createElement('div');
+    hintDiv.className = 'notes-modal-view-hint';
+    hintDiv.textContent = 'Tap note to edit';
+    if (isEditing) hintDiv.classList.add('hidden');
+
+    // Toggle to Edit Mode
+    viewDiv.onclick = () => {
+        isEditing = true;
+        updateModalView();
+    };
+
+    function updateModalView() {
+        if (isEditing) {
+            viewDiv.classList.add('hidden');
+            hintDiv.classList.add('hidden');
+            textarea.classList.remove('hidden');
+            actionsDiv.classList.remove('hidden');
+            textarea.focus();
+        } else {
+            textarea.value = dose.notes; // Reset changes
+            viewDiv.textContent = dose.notes;
+            textarea.classList.add('hidden');
+            actionsDiv.classList.add('hidden');
+            viewDiv.classList.remove('hidden');
+            hintDiv.classList.remove('hidden');
+        }
+    }
+
+    content.appendChild(viewDiv);
+    content.appendChild(hintDiv);
     content.appendChild(textarea);
     content.appendChild(actionsDiv);
     overlay.appendChild(content);
@@ -343,8 +383,10 @@ function openNotesModal(doseId) {
 
     if (typeof feather !== 'undefined') feather.replace();
 
-    // Focus textarea
-    setTimeout(() => textarea.focus(), 50);
+    // Focus textarea if initially editing
+    if (isEditing) {
+        setTimeout(() => textarea.focus(), 50);
+    }
 }
 
 function closeNotesModal() {
