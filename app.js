@@ -242,7 +242,7 @@ function renderHistory() {
         notesBtn.innerHTML = '<i data-feather="message-square"></i>';
         notesBtn.onclick = (e) => {
             e.stopPropagation();
-            openNotesModal(dose.id);
+            openNotesModal(dose.id, notesBtn);
         };
         tdNotes.appendChild(notesBtn);
 
@@ -264,30 +264,40 @@ function renderHistory() {
 // Notes Modal Logic
 let activeNotesModal = null;
 
-function openNotesModal(doseId) {
+function openNotesModal(doseId, triggerBtn) {
     const dose = doseHistory.find(d => d.id === doseId);
     if (!dose) return;
 
-    // Prevent background scrolling
-    document.body.style.overflow = 'hidden';
+    // Prevent background scrolling only if editing
+    // We'll manage this in updateModalView now
 
     // Create modal overlay
     const overlay = document.createElement('div');
     overlay.className = 'notes-modal-overlay';
 
+    // Determine initial mode
+    let isEditing = !dose.notes || dose.notes.trim().length === 0;
+
     // Close on overlay click
     overlay.onclick = (e) => {
         if (e.target === overlay) {
-            closeNotesModal();
+            if (isEditing && (!dose.notes || dose.notes.trim().length === 0)) {
+                // If adding new note and tapped away -> close
+                closeNotesModal();
+            } else if (isEditing) {
+                // If editing existing -> revert to view
+                isEditing = false;
+                updateModalView();
+            } else {
+                // If viewing -> close
+                closeNotesModal();
+            }
         }
     };
 
     const content = document.createElement('div');
     content.className = 'notes-modal-content';
     content.onclick = (e) => e.stopPropagation();
-
-    // Determine initial mode
-    let isEditing = !dose.notes || dose.notes.trim().length === 0;
 
     // -- Edit Mode Components --
     const textarea = document.createElement('textarea');
@@ -359,6 +369,13 @@ function openNotesModal(doseId) {
     function updateModalView() {
         if (isEditing) {
             overlay.classList.add('editing');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+
+            // Reset position styles for center alignment
+            content.style.top = '';
+            content.style.left = '';
+            content.style.transform = '';
+
             viewDiv.classList.add('hidden');
             hintDiv.classList.add('hidden');
             textarea.classList.remove('hidden');
@@ -366,12 +383,50 @@ function openNotesModal(doseId) {
             textarea.focus();
         } else {
             overlay.classList.remove('editing');
+            document.body.style.overflow = ''; // Allow scrolling
+
             textarea.value = dose.notes; // Reset changes
             viewDiv.textContent = dose.notes;
             textarea.classList.add('hidden');
             actionsDiv.classList.add('hidden');
             viewDiv.classList.remove('hidden');
             hintDiv.classList.remove('hidden');
+
+            // Position content relative to trigger button
+            if (triggerBtn) {
+                const rect = triggerBtn.getBoundingClientRect();
+                const scrollY = window.scrollY;
+                // Position above the button, centered horizontally
+                // We need to calculate content height/width, but it's not in DOM yet or just added.
+                // We'll set approx or adjust after render.
+
+                // Let's use simple absolute positioning based on rect
+                // Target: Bottom of modal at Top of button - 10px
+
+                // Since content has unknown height, we can use bottom positioning?
+                // But overlay is fixed 0,0. content is absolute within it.
+
+                // rect.top is relative to viewport.
+                // overlay is fixed to viewport.
+                // So we can use top/left directly from rect.
+
+                const contentWidth = 320; // Matches CSS
+                const leftPos = rect.left + (rect.width / 2) - (contentWidth / 2);
+
+                // Ensure horizontally on screen
+                const safeLeft = Math.max(10, Math.min(leftPos, window.innerWidth - contentWidth - 10));
+
+                content.style.left = `${safeLeft}px`;
+
+                // Position above:
+                // We want content.bottom = rect.top - 10
+                // Since we don't know height, we can use bottom property?
+                // content.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+                // But we need to unset top.
+                content.style.top = 'auto';
+                content.style.bottom = `${window.innerHeight - rect.top + 10}px`;
+                content.style.transform = 'none';
+            }
         }
     }
 
@@ -386,10 +441,8 @@ function openNotesModal(doseId) {
 
     if (typeof feather !== 'undefined') feather.replace();
 
-    // Focus textarea if initially editing
-    if (isEditing) {
-        setTimeout(() => textarea.focus(), 50);
-    }
+    // Trigger initial view update
+    updateModalView();
 }
 
 function closeNotesModal() {
