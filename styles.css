@@ -559,7 +559,19 @@ tbody tr:hover {
     white-space: nowrap;
 }
 
-.delete-row-btn {
+.qty-col {
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.notes-col {
+    width: 50px;
+    text-align: center;
+    padding: 0;
+}
+
+.notes-icon-btn {
     background: transparent;
     border: none;
     color: var(--text-secondary);
@@ -567,14 +579,97 @@ tbody tr:hover {
     padding: 0.4rem;
     border-radius: 6px;
     transition: var(--transition);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
-.delete-row-btn:hover {
+.notes-icon-btn:hover {
+    color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.notes-icon-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+/* Notes Popup */
+.notes-popup-container {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    width: 200px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 0.5rem;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.notes-popup-textarea {
+    width: 100%;
+    background: var(--bg-tertiary);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    resize: none;
+    min-height: 40px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.notes-popup-textarea.expanded {
+    min-height: 80px;
+    border-color: var(--border);
+    background: var(--bg-item);
+}
+
+.notes-popup-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.notes-popup-actions.hidden {
+    display: none;
+}
+
+.notes-popup-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.notes-popup-btn.cancel {
+    color: var(--text-secondary);
+}
+.notes-popup-btn.cancel:hover {
+    background: rgba(0,0,0,0.05);
     color: var(--accent-red);
-    background: rgba(239, 68, 68, 0.1);
+}
+
+.notes-popup-btn.save {
+    color: var(--accent-green);
+}
+.notes-popup-btn.save:hover {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.notes-popup-btn i {
+    width: 16px;
+    height: 16px;
 }
 
 /* Empty State */
@@ -698,9 +793,17 @@ tbody tr:hover {
 }
 
 .modal-content h3 {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
     color: var(--text-primary);
     text-align: center;
+    flex-grow: 1;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
 }
 
 .form-group {
@@ -715,7 +818,8 @@ tbody tr:hover {
 }
 
 .form-group select,
-.form-group input {
+.form-group input,
+.form-group textarea {
     width: 100%;
     padding: 0.8rem;
     border-radius: 8px;
@@ -724,6 +828,51 @@ tbody tr:hover {
     color: var(--text-primary);
     font-size: 1rem;
     font-family: inherit;
+}
+
+.time-display-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-tertiary);
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.time-display-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.secondary-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-primary);
+}
+
+.delete-btn:hover {
+    color: var(--accent-red);
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .modal-actions {

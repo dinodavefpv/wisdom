@@ -107,7 +107,9 @@ function logMedicine(medicineName) {
         name: medicineName,
         timestamp: now.toISOString(),
         dateStr: now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-        timeStr: now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+        timeStr: now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+        quantity: 1,
+        notes: ''
     };
 
     doseHistory.push(doseEvent);
@@ -150,6 +152,32 @@ function getMedicineColor(name) {
     return med ? med.color : 'var(--text-primary)';
 }
 
+function formatQuantity(qty) {
+    if (qty === null || qty === undefined) return '';
+    const num = parseFloat(qty);
+    if (isNaN(num)) return qty;
+
+    const integerPart = Math.floor(num);
+    const decimalPart = num - integerPart;
+
+    let fractionSymbol = '';
+    // Tolerance for float comparison
+    const epsilon = 0.001;
+
+    if (Math.abs(decimalPart - 0.25) < epsilon) fractionSymbol = '¼';
+    else if (Math.abs(decimalPart - 0.5) < epsilon) fractionSymbol = '½';
+    else if (Math.abs(decimalPart - 0.75) < epsilon) fractionSymbol = '¾';
+    else if (Math.abs(decimalPart - 0.333) < epsilon) fractionSymbol = '⅓';
+    else if (Math.abs(decimalPart - 0.666) < epsilon) fractionSymbol = '⅔';
+
+    if (integerPart === 0 && fractionSymbol) return fractionSymbol;
+    if (fractionSymbol) return `${integerPart}${fractionSymbol}`;
+    if (integerPart === 0 && num > 0) return num.toString(); // Fallback for other decimals < 1
+    if (num === 0) return '0';
+
+    return num % 1 === 0 ? num.toString() : num.toString();
+}
+
 // Render Table
 function renderHistory() {
     historyBody.innerHTML = '';
@@ -166,7 +194,11 @@ function renderHistory() {
     doseHistory.forEach(dose => {
         const tr = document.createElement('tr');
         tr.style.cursor = 'pointer';
-        tr.onclick = () => openEditModal(dose.id);
+        tr.onclick = (e) => {
+             // Don't open edit modal if clicking on notes popup components
+            if (e.target.closest('.notes-popup-container')) return;
+            openEditModal(dose.id);
+        };
 
         // Date cell
         const tdDate = document.createElement('td');
@@ -194,22 +226,31 @@ function renderHistory() {
         medChip.textContent = dose.name;
         tdMed.appendChild(medChip);
 
-        // Action cell (delete)
-        const tdAction = document.createElement('td');
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-row-btn';
-        deleteBtn.innerHTML = '<i data-feather="x"></i>';
-        deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            deleteDose(dose.id);
-        };
-        deleteBtn.title = "Remove entry";
-        tdAction.appendChild(deleteBtn);
+        // Quantity cell
+        const tdQty = document.createElement('td');
+        tdQty.className = 'qty-col';
+        tdQty.textContent = formatQuantity(dose.quantity);
+
+        // Notes cell
+        const tdNotes = document.createElement('td');
+        tdNotes.className = 'notes-col';
+
+        if (dose.notes && dose.notes.trim().length > 0) {
+            const notesBtn = document.createElement('button');
+            notesBtn.className = 'notes-icon-btn';
+            notesBtn.innerHTML = '<i data-feather="message-square"></i>';
+            notesBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleNotesPopup(dose.id, notesBtn);
+            };
+            tdNotes.appendChild(notesBtn);
+        }
 
         tr.appendChild(tdDate);
         tr.appendChild(tdTime);
         tr.appendChild(tdMed);
-        tr.appendChild(tdAction);
+        tr.appendChild(tdQty);
+        tr.appendChild(tdNotes);
 
         historyBody.appendChild(tr);
     });
@@ -219,6 +260,115 @@ function renderHistory() {
         feather.replace();
     }
 }
+
+// Notes Popup Logic
+let activeNotesPopup = null;
+
+function toggleNotesPopup(doseId, btnElement) {
+    // If clicking same button, close it
+    if (activeNotesPopup && activeNotesPopup.doseId === doseId) {
+        closeNotesPopup();
+        return;
+    }
+
+    closeNotesPopup(); // Close any existing
+
+    const dose = doseHistory.find(d => d.id === doseId);
+    if (!dose) return;
+
+    // Create popup container
+    const popup = document.createElement('div');
+    popup.className = 'notes-popup-container';
+    popup.onclick = (e) => e.stopPropagation(); // Prevent row click
+
+    const textarea = document.createElement('textarea');
+    textarea.className = 'notes-popup-textarea';
+    textarea.value = dose.notes;
+
+    // Auto-expand on focus/input
+    const autoResize = () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    };
+
+    textarea.addEventListener('input', () => {
+        autoResize();
+        actionsDiv.classList.remove('hidden'); // Show actions on edit
+    });
+
+    textarea.addEventListener('focus', () => {
+        textarea.classList.add('expanded');
+        autoResize();
+    });
+
+    // Actions (Save/Cancel)
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'notes-popup-actions hidden';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'notes-popup-btn cancel';
+    cancelBtn.innerHTML = '<i data-feather="x"></i>';
+    cancelBtn.onclick = () => {
+        textarea.value = dose.notes;
+        textarea.classList.remove('expanded');
+        textarea.style.height = '';
+        actionsDiv.classList.add('hidden');
+        closeNotesPopup();
+    };
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'notes-popup-btn save';
+    saveBtn.innerHTML = '<i data-feather="check"></i>';
+    saveBtn.onclick = () => {
+        const newNotes = textarea.value;
+        if (newNotes !== dose.notes) {
+            dose.notes = newNotes;
+            saveHistory();
+            if (dose.airtableId) {
+                syncUpdateToAirtable(dose);
+            } else {
+                syncToAirtable(dose);
+            }
+            showToast("Note updated");
+        }
+        closeNotesPopup();
+        renderHistory(); // Re-render to update icon state if needed
+    };
+
+    actionsDiv.appendChild(cancelBtn);
+    actionsDiv.appendChild(saveBtn);
+
+    popup.appendChild(textarea);
+    popup.appendChild(actionsDiv);
+
+    // Position relative to the button
+    // We'll append to body or a fixed container to avoid overflow issues,
+    // but for simplicity in this structure, let's append to the cell and position absolute
+    const parentCell = btnElement.parentElement;
+    parentCell.style.position = 'relative';
+    parentCell.appendChild(popup);
+
+    activeNotesPopup = { doseId, element: popup };
+
+    if (typeof feather !== 'undefined') feather.replace();
+
+    // Initial resize if needed
+    autoResize();
+}
+
+function closeNotesPopup() {
+    if (activeNotesPopup && activeNotesPopup.element) {
+        activeNotesPopup.element.remove();
+        activeNotesPopup = null;
+    }
+}
+
+// Close popup when clicking outside
+document.addEventListener('click', (e) => {
+    if (activeNotesPopup && !e.target.closest('.notes-popup-container') && !e.target.closest('.notes-icon-btn')) {
+        closeNotesPopup();
+    }
+});
 
 // Render Timeline View
 function renderTimeline() {
@@ -415,7 +565,9 @@ async function syncToAirtable(dose) {
                     "Medicine": dose.name,
                     "Date": dose.dateStr,
                     "Time": dose.timeStr,
-                    "timestamp": dose.timestamp
+                    "timestamp": dose.timestamp,
+                    "Quantity": dose.quantity,
+                    "Notes": dose.notes
                 }
             }
         ],
@@ -482,7 +634,9 @@ async function loadFromAirtable() {
                     name: medName,
                     timestamp: record.fields.timestamp || new Date().toISOString(),
                     dateStr: record.fields.Date,
-                    timeStr: record.fields.Time
+                    timeStr: record.fields.Time,
+                    quantity: record.fields.Quantity || 1,
+                    notes: record.fields.Notes || ''
                 };
             });
             doseHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -502,7 +656,10 @@ const editModal = document.getElementById('edit-modal');
 const editMedicineInput = document.getElementById('edit-medicine');
 const editDateInput = document.getElementById('edit-date');
 const editTimeInput = document.getElementById('edit-time');
+const editQuantityInput = document.getElementById('edit-quantity');
+const editNotesInput = document.getElementById('edit-notes');
 const editIdInput = document.getElementById('edit-id');
+const editTimeDisplay = document.getElementById('edit-time-display');
 
 function openEditModal(id) {
     const dose = doseHistory.find(d => d.id === id);
@@ -527,6 +684,8 @@ function openEditModal(id) {
 
     editIdInput.value = dose.id;
     editMedicineInput.value = dose.name;
+    editQuantityInput.value = dose.quantity !== undefined ? dose.quantity : 1;
+    editNotesInput.value = dose.notes || '';
 
     // Parse timestamp for inputs
     const date = new Date(dose.timestamp);
@@ -534,14 +693,38 @@ function openEditModal(id) {
     const offset = date.getTimezoneOffset() * 60000;
     const localDate = new Date(date.getTime() - offset);
 
-    editDateInput.value = localDate.toISOString().split('T')[0];
-    editTimeInput.value = localDate.toISOString().split('T')[1].substring(0, 5);
+    const isoDate = localDate.toISOString().split('T')[0];
+    const isoTime = localDate.toISOString().split('T')[1].substring(0, 5);
+
+    editDateInput.value = isoDate;
+    editTimeInput.value = isoTime;
+
+    updateEditTimeDisplay(isoDate, isoTime);
+
+    // Initialize Feather icons in modal (trash icon)
+    if (typeof feather !== 'undefined') feather.replace();
 
     editModal.classList.remove('hidden');
 }
 
+function updateEditTimeDisplay(dateStr, timeStr) {
+    const dateObj = new Date(`${dateStr}T${timeStr}:00`);
+    const displayDate = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const displayTime = dateObj.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    editTimeDisplay.textContent = `${displayDate} at ${displayTime}`;
+}
+
 function closeEditModal() {
     editModal.classList.add('hidden');
+}
+
+function deleteEditingDose() {
+    const id = editIdInput.value;
+    if (confirm("Are you sure you want to delete this dose?")) {
+        deleteDose(id);
+        closeEditModal();
+        showToast("Dose deleted");
+    }
 }
 
 function saveEditDose() {
@@ -549,6 +732,8 @@ function saveEditDose() {
     const name = editMedicineInput.value;
     const dateVal = editDateInput.value;
     const timeVal = editTimeInput.value;
+    const quantity = parseFloat(editQuantityInput.value);
+    const notes = editNotesInput.value;
 
     if (!dateVal || !timeVal) {
         showToast("Please enter date and time");
@@ -566,6 +751,8 @@ function saveEditDose() {
     dose.timestamp = newDate.toISOString();
     dose.dateStr = newDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     dose.timeStr = newDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    dose.quantity = isNaN(quantity) ? 1 : quantity;
+    dose.notes = notes;
 
     // Re-sort
     doseHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -581,6 +768,186 @@ function saveEditDose() {
     } else {
         syncToAirtable(dose);
     }
+}
+
+// ============================================
+// EDIT TIME MODAL LOGIC (Reusing similar logic to Past Time)
+// ============================================
+
+const editTimeModal = document.getElementById('edit-time-modal');
+let editTimePickerInitialized = false;
+
+function openEditTimePicker() {
+    editTimeModal.classList.remove('hidden');
+
+    if (!editTimePickerInitialized) {
+        setupEditDaySelector();
+        initializeEditTimePicker();
+        editTimePickerInitialized = true;
+    }
+
+    // Set picker to currently selected edit time
+    const dateVal = editDateInput.value;
+    const timeVal = editTimeInput.value;
+
+    // Select day
+    const days = document.querySelectorAll('#edit-day-selector .day');
+    days.forEach(d => {
+        if (d.dataset.date === dateVal) {
+            d.classList.add('selected');
+            d.scrollIntoView({ block: 'nearest', inline: 'center' });
+        } else {
+            d.classList.remove('selected');
+        }
+    });
+
+    // Set time columns
+    const [h, m] = timeVal.split(':').map(Number);
+    let hour = h % 12 || 12;
+    let ampm = h >= 12 ? 'PM' : 'AM';
+    let minute = m;
+
+    setTimeout(() => {
+        setEditTimePickerValues(hour, minute, ampm);
+    }, 100);
+}
+
+function closeEditTimeModal() {
+    editTimeModal.classList.add('hidden');
+}
+
+function applyEditTime() {
+    const selectedDayEl = document.querySelector('#edit-day-selector .day.selected');
+    if (!selectedDayEl) return;
+
+    const dateStr = selectedDayEl.dataset.date;
+    const { hour, minute, ampm } = getSelectedEditTime();
+
+    let targetHour = parseInt(hour, 10);
+    if (ampm === 'PM' && targetHour < 12) targetHour += 12;
+    if (ampm === 'AM' && targetHour === 12) targetHour = 0;
+
+    const formattedHour = String(targetHour).padStart(2, '0');
+    const formattedMinute = String(minute).padStart(2, '0');
+
+    const timeStr = `${formattedHour}:${formattedMinute}`;
+
+    editDateInput.value = dateStr;
+    editTimeInput.value = timeStr;
+
+    updateEditTimeDisplay(dateStr, timeStr);
+    closeEditTimeModal();
+}
+
+// Duplicate Day/Time Selector Logic for Edit Modal (Namespace Separation)
+// In a larger app, we'd refactor this into a reusable class.
+
+function setupEditDaySelector() {
+    const daySelector = document.getElementById('edit-day-selector');
+    daySelector.innerHTML = '';
+    const today = new Date();
+
+    const getLocalDateStr = (d) => {
+        const offset = d.getTimezoneOffset() * 60000;
+        return (new Date(d.getTime() - offset)).toISOString().split('T')[0];
+    };
+
+    const todayStr = getLocalDateStr(today);
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Show last 30 days for editing flexibility
+    for (let i = 30; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        const dateStr = getLocalDateStr(date);
+
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'day';
+        dayDiv.dataset.date = dateStr;
+
+        const dayName = dayNames[date.getDay()];
+        const dayNum = date.getDate();
+
+        dayDiv.innerHTML = `
+            <span class="day-name">${dayName}</span>
+            <span class="day-num">${dayNum}</span>
+        `;
+
+        dayDiv.onclick = () => {
+             document.querySelectorAll('#edit-day-selector .day').forEach(d => d.classList.remove('selected'));
+             dayDiv.classList.add('selected');
+        };
+
+        daySelector.appendChild(dayDiv);
+    }
+}
+
+function initializeEditTimePicker() {
+    const hourPicker = document.getElementById('edit-hour-picker');
+    const minutePicker = document.getElementById('edit-minute-picker');
+    const ampmPicker = document.getElementById('edit-ampm-picker');
+
+    // Populate (same as main picker)
+    hourPicker.innerHTML = `<div class="time-item time-item-padding"></div>`;
+    for (let r = 0; r < 5; r++) {
+        for (let i = 1; i <= 12; i++) {
+            hourPicker.innerHTML += `<div class="time-item" data-value="${i}">${i}</div>`;
+        }
+    }
+    hourPicker.innerHTML += `<div class="time-item time-item-padding"></div>`;
+
+    minutePicker.innerHTML = `<div class="time-item time-item-padding"></div>`;
+    for (let r = 0; r < 5; r++) {
+        for (let i = 0; i < 60; i++) {
+            minutePicker.innerHTML += `<div class="time-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
+        }
+    }
+    minutePicker.innerHTML += `<div class="time-item time-item-padding"></div>`;
+
+    ampmPicker.innerHTML = `<div class="time-item time-item-padding"></div>`;
+    ampmPicker.innerHTML += `<div class="time-item" data-value="AM">AM</div>`;
+    ampmPicker.innerHTML += `<div class="time-item" data-value="PM">PM</div>`;
+    ampmPicker.innerHTML += `<div class="time-item time-item-padding"></div>`;
+
+    setupTimePickerColumn(hourPicker, 12, true);
+    setupTimePickerColumn(minutePicker, 60, true);
+    setupTimePickerColumn(ampmPicker, 2, false);
+}
+
+function setEditTimePickerValues(hour, minute, ampm) {
+    const itemHeight = 45;
+    const hourPicker = document.getElementById('edit-hour-picker');
+    const minutePicker = document.getElementById('edit-minute-picker');
+    const ampmPicker = document.getElementById('edit-ampm-picker');
+
+    const hourIndex = 1 + (2 * 12) + (hour - 1);
+    const minuteIndex = 1 + (2 * 60) + minute;
+    const ampmIndex = 1 + (ampm === 'PM' ? 1 : 0);
+
+    hourPicker.scrollTop = (hourIndex * itemHeight + (itemHeight / 2)) - (hourPicker.clientHeight / 2);
+    minutePicker.scrollTop = (minuteIndex * itemHeight + (itemHeight / 2)) - (minutePicker.clientHeight / 2);
+    ampmPicker.scrollTop = (ampmIndex * itemHeight + (itemHeight / 2)) - (ampmPicker.clientHeight / 2);
+}
+
+function getSelectedEditTime() {
+    const hourPicker = document.getElementById('edit-hour-picker');
+    const minutePicker = document.getElementById('edit-minute-picker');
+    const ampmPicker = document.getElementById('edit-ampm-picker');
+    const itemHeight = 45;
+
+    function getCenteredValue(picker) {
+        const pickerHeight = picker.clientHeight;
+        const visibleCenter = picker.scrollTop + (pickerHeight / 2);
+        const centerIndex = Math.round((visibleCenter - (itemHeight / 2)) / itemHeight);
+        const child = picker.children[centerIndex];
+        return child ? child.dataset.value : null;
+    }
+
+    return {
+        hour: getCenteredValue(hourPicker) || 12,
+        minute: getCenteredValue(minutePicker) || 0,
+        ampm: getCenteredValue(ampmPicker) || 'AM'
+    };
 }
 
 // ============================================
@@ -934,7 +1301,9 @@ async function batchUpdateAirtable(doses) {
                     "Medicine": dose.name,
                     "Date": dose.dateStr,
                     "Time": dose.timeStr,
-                    "timestamp": dose.timestamp
+                    "timestamp": dose.timestamp,
+                    "Quantity": dose.quantity,
+                    "Notes": dose.notes
                 }
             })),
             typecast: true
@@ -1148,7 +1517,9 @@ async function syncUpdateToAirtable(dose) {
             "Medicine": dose.name,
             "Date": dose.dateStr,
             "Time": dose.timeStr,
-            "timestamp": dose.timestamp
+            "timestamp": dose.timestamp,
+            "Quantity": dose.quantity,
+            "Notes": dose.notes
         },
         typecast: true
     };

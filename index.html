@@ -67,7 +67,8 @@
                             <th>Date</th>
                             <th>Time</th>
                             <th>Medicine</th>
-                            <th></th>
+                            <th>Qty</th>
+                            <th>Notes</th>
                         </tr>
                     </thead>
                     <tbody id="history-body">
@@ -88,25 +89,69 @@
     <!-- Edit Dose Modal -->
     <div id="edit-modal" class="modal hidden">
         <div class="modal-content">
-            <h3>Edit Dose</h3>
+            <div class="modal-header">
+                <h3>Edit Dose</h3>
+                <button class="icon-btn delete-btn" onclick="deleteEditingDose()" title="Delete Dose">
+                    <i data-feather="trash-2"></i>
+                </button>
+            </div>
+
             <div class="form-group">
                 <label for="edit-medicine">Medicine</label>
                 <select id="edit-medicine">
                     <!-- Options populated by JS -->
                 </select>
             </div>
+
             <div class="form-group">
-                <label for="edit-date">Date</label>
-                <input type="date" id="edit-date">
+                <label>Time</label>
+                <div class="time-display-row">
+                    <span id="edit-time-display" class="time-display-text">--</span>
+                    <button class="secondary-btn" onclick="openEditTimePicker()">Edit Time</button>
+                </div>
+                <!-- Hidden inputs to store ISO values -->
+                <input type="hidden" id="edit-date">
+                <input type="hidden" id="edit-time">
             </div>
+
             <div class="form-group">
-                <label for="edit-time">Time</label>
-                <input type="time" id="edit-time">
+                <label for="edit-quantity">Quantity</label>
+                <input type="number" id="edit-quantity" step="0.25" min="0">
             </div>
+
+            <div class="form-group">
+                <label for="edit-notes">Notes</label>
+                <textarea id="edit-notes" rows="3" placeholder="Add notes..."></textarea>
+            </div>
+
             <input type="hidden" id="edit-id">
             <div class="modal-actions">
                 <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
                 <button class="save-btn" onclick="saveEditDose()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Time Picker Modal (reusing structure similar to past-time but in a modal) -->
+    <div id="edit-time-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Set Time</h3>
+            <div class="day-selector-container">
+                <div class="day-selector" id="edit-day-selector">
+                    <!-- Days inserted via JS -->
+                </div>
+            </div>
+            <div class="time-selector-container">
+                <div class="time-picker-column" id="edit-hour-picker"></div>
+                <div class="time-picker-divider">:</div>
+                <div class="time-picker-column" id="edit-minute-picker"></div>
+                <div class="time-picker-divider"></div>
+                <div class="time-picker-column" id="edit-ampm-picker"></div>
+                <div class="time-picker-highlight"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeEditTimeModal()">Cancel</button>
+                <button class="save-btn" onclick="applyEditTime()">Set Time</button>
             </div>
         </div>
     </div>
